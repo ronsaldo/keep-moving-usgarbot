@@ -2,7 +2,7 @@
 
 command()
 {
-    make -C build-native -j8
+    make -C build -j8
 }
 
 while CHANGES=$(inotifywait -e close_write src); do

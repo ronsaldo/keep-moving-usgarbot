@@ -5,6 +5,7 @@
 #include "ControllerState.hpp"
 #include "Image.hpp"
 #include "SoundSample.hpp"
+#include "TileSet.hpp"
 #include <algorithm>
 
 struct GlobalState
@@ -14,11 +15,11 @@ struct GlobalState
     bool isPaused;
     bool isGameCompleted;
     float currentTime;
-    float matchTime;
     ControllerState oldControllerState;
     ControllerState controllerState;
 
     // Assets.
+    TileSet mainTileSet;
     SoundSamplePtr noiseSample;
 
     bool isButtonPressed(int button) const
@@ -30,6 +31,7 @@ struct GlobalState
 static_assert(sizeof(GlobalState) < PersistentMemorySize, "Increase the persistentMemory");
 
 extern GlobalState *globalState;
+extern HostInterface *hostInterface;
 
 #define global (*globalState)
 

@@ -2,6 +2,7 @@ set(SimpleGameTemplateGameLogic_SOURCES
     GameInterface.hpp
     GameLogic.cpp
     GameLogic.hpp
+    TileSet.cpp
 )
 
 set(SimpleGameTemplate_SOURCES

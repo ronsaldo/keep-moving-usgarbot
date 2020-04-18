@@ -73,6 +73,7 @@ static MemoryZone persistentMemory;
 static MemoryZone transientMemory;
 static bool quitting = false;
 static GameInterface *currentGameInterface;
+static bool mandatoryUpdateRequired;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Texture *texture;
@@ -131,6 +132,8 @@ static void reloadGameInterface()
         currentGameInterface->setPersistentMemory(&persistentMemory);
         currentGameInterface->setTransientMemory(&transientMemory);
         currentGameInterface->setHostInterface(&SDL2HostInterface::singleton);
+
+        mandatoryUpdateRequired = true;
     }
 }
 
@@ -145,6 +148,8 @@ void reloadGameInterface()
         currentGameInterface->setPersistentMemory(&persistentMemory);
         currentGameInterface->setTransientMemory(&transientMemory);
         currentGameInterface->setHostInterface(&SDL2HostInterface::singleton);
+
+        mandatoryUpdateRequired = true;
     }
 }
 
@@ -514,6 +519,10 @@ static void mainLoopIteration()
         accumulatedTime -= TimeStep;
         ++iterationCount;
     }
+
+    if(mandatoryUpdateRequired && iterationCount == 0)
+        update(0);
+    mandatoryUpdateRequired = false;
 
     //if(iterationCount == 0)
     //    printf("Not iterated update %f\n", accumulatedTime);
