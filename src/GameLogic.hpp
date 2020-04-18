@@ -9,6 +9,8 @@
 #include "MapFile.hpp"
 #include <algorithm>
 
+#define PixelsPerUnit 32.0f
+
 struct GlobalState
 {
     // Global states
@@ -23,6 +25,9 @@ struct GlobalState
     TileSet mainTileSet;
     MapFilePtr currentMap;
     SoundSamplePtr noiseSample;
+
+    // Camera/player.
+    Vector2F cameraPosition;
 
     bool isButtonPressed(int button) const
     {

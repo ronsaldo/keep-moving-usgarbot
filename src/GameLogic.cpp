@@ -44,6 +44,8 @@ void update(float delta, const ControllerState &controllerState)
     global.oldControllerState = global.controllerState;
     global.controllerState = controllerState;
 
+    global.cameraPosition += Vector2F(global.controllerState.leftXAxis, global.controllerState.leftYAxis)*delta*10.0;
+
     global.currentTime += delta;
 
     // Pause button
@@ -58,6 +60,7 @@ public:
         : framebuffer(f) {}
 
     const Framebuffer &framebuffer;
+    Vector2I cameraPixelOffset;
 
     void renderBackground()
     {
@@ -78,6 +81,7 @@ public:
 
     void render()
     {
+        cameraPixelOffset = (-Vector2F(global.cameraPosition.x, -global.cameraPosition.y)*PixelsPerUnit).floor().asVector2I();
         renderBackground();
 
         global.currentMap->tileLayersDo([&](const MapFileTileLayer &layer) {
@@ -100,7 +104,7 @@ public:
                     Vector2I tileGridIndex;
                     if(tileSet.computeTileColumnAndRowFromIndex(tileIndex - 1, &tileGridIndex))
                     {
-                        blitTile(tileSet, tileGridIndex, Vector2I(lx, ly)*tileSet.tileExtent);
+                        blitTile(tileSet, tileGridIndex, Vector2I(lx, ly)*tileSet.tileExtent + cameraPixelOffset);
                     }
                 }
 
