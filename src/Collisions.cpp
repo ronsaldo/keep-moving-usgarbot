@@ -46,3 +46,93 @@ bool isBoxCollidingWithWorld(const Box2F &box)
     }
     return false;
 }
+
+bool isBoxCollidingWithSolid(const Box2F &box)
+{
+    return isBoxCollidingWithWorld(box);
+}
+
+void sweepCollisionBoxAlongRayWithWorldWithMapTileLayer(const Vector2F &boxHalfExtent, const Ray2F &ray, const MapFileTileLayer *tileLayer, CollisionSweepTestResult &outResult)
+{
+    auto tileLayerExtent = tileLayer->extent;
+    auto tileExtent = global.mainTileSet.tileExtent.asVector2F();
+
+    auto tileRay = tileLayer->rayFromWorldIntoTileSpace(ray, tileExtent);
+    auto tileRayStartPoint = tileRay.startPoint();
+    auto tileRayEndPoint = tileRay.endPoint();
+
+    auto extraTileHalfExtent = tileLayer->vectorFromWorldIntoTileSpace(boxHalfExtent, tileExtent);
+
+    auto tileRayBoundingBox = Box2F(std::min(tileRayStartPoint, tileRayEndPoint), std::max(tileRayStartPoint, tileRayEndPoint)).grownWithHalfExtent(extraTileHalfExtent);
+    auto tileGridBox = tileRayBoundingBox.asBoundingIntegerBox().intersectionWithBox(tileLayer->tileGridBounds());
+
+    //printf("ray %f %f -> %f %f\n", ray.origin.x, ray.origin.y, ray.direction.x, ray.direction.y);
+    //printf("tileRay %f %f -> %f %f\n", tileRay.origin.x, tileRay.origin.y, tileRay.direction.x, tileRay.direction.y);
+
+    //printf("extraTileHalfExtent %f %f\n", extraTileHalfExtent.x, extraTileHalfExtent.y);
+    //printf("tileRay %f %f %f %f\n", tileRayStartPoint.x, tileRayStartPoint.y, tileRayEndPoint.x, tileRayEndPoint.y);
+    //printf("tileRayBoundingBox %f %f %f %f\n", tileRayBoundingBox.min.x, tileRayBoundingBox.min.y, tileRayBoundingBox.max.x, tileRayBoundingBox.max.y);
+    //printf("tileGridBox %d %d %d %d\n", tileGridBox.min.x, tileGridBox.min.y, tileGridBox.max.x, tileGridBox.max.y);
+
+    auto sourceRow = tileLayer->tiles + tileGridBox.min.y*tileLayerExtent.x + tileGridBox.min.x;
+    for(int32_t ty = tileGridBox.min.y; ty < tileGridBox.max.y; ++ty)
+    {
+        auto source = sourceRow;
+        for(int32_t tx = tileGridBox.min.x; tx < tileGridBox.max.x; ++tx)
+        {
+            auto tileIndex = *source++;
+            if(tileIndex == 0)
+                continue;
+
+            auto tileBox = Box2F(Vector2F(tx, ty), Vector2F(tx + 1, ty + 1)).grownWithHalfExtent(extraTileHalfExtent);
+            auto intersectionResult = tileBox.intersectionWithRay(tileRay);
+            //printf("Test tile box: %f %f %f %f: %d %f\n", tileBox.min.x, tileBox.min.y, tileBox.max.x, tileBox.max.y, intersectionResult.first, intersectionResult.second);
+            if(intersectionResult.first)
+            {
+                auto intersectionPoint = tileRay.pointAtT(intersectionResult.second);
+                auto intersectionWorldPoint = tileLayer->pointFromTileIntoWorldSpace(intersectionPoint, tileExtent);
+                auto intersectionWorldT = ray.direction.dot(intersectionWorldPoint - ray.origin);
+
+                if(!outResult.hasCollision || intersectionWorldT < outResult.collisionDistance)
+                {
+                    //printf("Intersection point: %f %f\n", intersectionPoint.x, intersectionPoint.y);
+                    //printf("intersectionWorldPoint: %f %f\n", intersectionWorldPoint.x, intersectionWorldPoint.y);
+                    //printf("intersectionWorldT: %f\n", intersectionWorldT);
+
+                    outResult.hasCollision = true;
+                    outResult.collisionDistance = intersectionWorldT;
+                    outResult.collidingBox = tileLayer->boxFromTileIntoWorldSpace(tileBox, tileExtent);
+                }
+
+            }
+        }
+
+        sourceRow += tileLayerExtent.x;
+    }
+}
+
+void sweepCollisionBoxAlongRayWithWorld(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult)
+{
+    auto mapState = global.mapTransientState;
+    if(!mapState)
+        return;
+
+    for(auto layer : mapState->layers)
+    {
+        if(layer->type != MapLayerType::Solid)
+            continue;
+
+        auto solidLayer = reinterpret_cast<MapSolidLayerState*> (layer);
+        sweepCollisionBoxAlongRayWithWorldWithMapTileLayer(boxHalfExtent, ray, solidLayer->mapTileLayer, outResult);
+    }
+}
+
+void sweepCollisionBoxAlongRayWithCollidingEntities(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult)
+{
+}
+
+void sweepCollisionBoxAlongRay(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult)
+{
+    sweepCollisionBoxAlongRayWithWorld(boxHalfExtent, ray, outResult);
+    sweepCollisionBoxAlongRayWithCollidingEntities(boxHalfExtent, ray, outResult);
+}

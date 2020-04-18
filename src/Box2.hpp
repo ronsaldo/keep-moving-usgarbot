@@ -2,6 +2,7 @@
 #define BOX2_HPP
 
 #include "Vector2.hpp"
+#include "Ray2.hpp"
 
 class Box2I;
 class Box2F
@@ -65,6 +66,30 @@ public:
         return !isBoxOutside(other);
     }
 
+    Ray2F::IntersectionResult intersectionWithRay(const Ray2F &ray)
+    {
+        // Slab testing algorithm from: A Ray-Box Intersection Algorithm andEfficient Dynamic Voxel Rendering
+        auto t0 = (min - ray.origin)*ray.inverseDirection;
+        auto t1 = (max - ray.origin)*ray.inverseDirection;
+        auto tmin = std::min(t0, t1);
+        auto tmax = std::max(t0, t1);
+        auto maxTMin = std::max(std::max(tmin.x, tmin.y), ray.minT);
+        auto minTMax = std::min(std::min(tmax.x, tmax.y), ray.maxT);
+
+        auto hasIntersection = maxTMin <= minTMax;
+
+        return std::make_pair(hasIntersection, std::min(maxTMin, minTMax));
+    }
+
+    std::pair<Vector2F, float> computeCollisionNormalAndPenetrationAtPoint(const Vector2F &point)
+    {
+        auto collisionVector = point - center();
+        auto normalizedCollisionVector = collisionVector/halfExtent();
+        auto collisionNormal = normalizedCollisionVector.maximumSignedAxis();
+
+        return std::make_pair(collisionNormal, (collisionVector - halfExtent()*collisionNormal).dot(collisionNormal));
+    }
+
     Vector2F extent() const
     {
         return max - min;
@@ -88,6 +113,11 @@ public:
     Box2F scaledCoordinatesBy(const Vector2F &v) const
     {
         return Box2F(min*v, max*v);
+    }
+
+    Box2F grownWithHalfExtent(const Vector2F &extraHalfExtent) const
+    {
+        return withCenterAndHalfExtent(center(), halfExtent() + extraHalfExtent);
     }
 
     Box2I asBox2I() const;

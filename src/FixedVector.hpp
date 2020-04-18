@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <utility>
 
 template<typename VT, int MC>
 class FixedVector
@@ -50,6 +51,11 @@ public:
         return size_;
     }
 
+    bool empty() const
+    {
+        return size_ == 0;
+    }
+
     void push_back(const value_type &v)
     {
         if(size_ >= MaxCapacity)
@@ -57,6 +63,33 @@ public:
 
         new (&storage()[size_]) VT (v);
         ++size_;
+    }
+
+    void pop_back()
+    {
+        if(empty())
+            return;
+
+        storage()[size_-1].~VT();
+        --size_;
+    }
+
+    template<typename FT>
+    void removeAllThat(const FT &f)
+    {
+        size_t destIndex = 0;
+        for(size_t i = 0; i < size_; ++i)
+        {
+            auto &element = storage()[i];
+            if(!f(element))
+            {
+                if(i != destIndex)
+                    storage()[destIndex] = std::move(element);
+                ++destIndex;
+            }
+        }
+
+        size_ = destIndex;
     }
 
     value_type &back()

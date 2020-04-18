@@ -18,25 +18,34 @@ static std::unordered_map<std::string, EntityBehaviorType> EntityTypeToBehaviorT
 #   undef ENTITY_BEHAVIOR_TYPE
 };
 
-float sawToothWave(float x)
-{
-    return (x - floor(x))*2.0f - 1.0f;
-}
-
-float sineWave(float x)
-{
-    return sin(x*M_PI*2.0f);
-}
-
 uint8_t *allocateTransientBytes(size_t byteCount)
 {
     return transientMemoryZone->allocateBytes(byteCount);
 }
 
-static Entity *instatiateEntityInLayer(MapEntityLayerState *entityLayer)
+Entity *instatiateEntityInLayer(MapEntityLayerState *entityLayer, EntityBehaviorType type)
 {
-    global.mapTransientState->entities.push_back(Entity());
-    auto result = &global.mapTransientState->entities.back();
+    Entity *result;
+    if(!global.mapTransientState->freeEntities.empty())
+    {
+        result = global.mapTransientState->freeEntities.back();
+
+        // Destroy and recreate the entity, to make sure it is completely clean.
+        result->~Entity();
+        memset(result, 0, sizeof(Entity));
+        new (result) Entity;
+
+        global.mapTransientState->freeEntities.pop_back();
+        //printf("Use entity form the free list\n");
+    }
+    else
+    {
+        global.mapTransientState->entities.push_back(Entity());
+        result = &global.mapTransientState->entities.back();
+        //printf("Instantiate new entity\n");
+    }
+
+    result->type = type;
     entityLayer->entities.push_back(result);
     return result;
 }
@@ -51,18 +60,14 @@ static EntityBehaviorType parseEntityTypeName(const std::string &name)
 
 static Entity *instantiateMapEntity(MapEntityLayerState *entityLayer, const MapFileEntity &mapEntity)
 {
-    auto result = instatiateEntityInLayer(entityLayer);
+    auto result = instatiateEntityInLayer(entityLayer, parseEntityTypeName(mapEntity.type));
     result->name = mapEntity.name;
-    result->type = parseEntityTypeName(mapEntity.type);
 
     auto bbox = mapEntity.boundingBox;
     result->position = (bbox.center() - Vector2F(0.0f, global.currentMap->height()))*Vector2F(UnitsPerPixel, -UnitsPerPixel);
     result->halfExtent = bbox.halfExtent()*UnitsPerPixel;
 
     result->spawn();
-    if(result->needsTicking())
-        global.mapTransientState->tickingEntitites.push_back(result);
-
     return result;
 }
 
@@ -111,6 +116,13 @@ static void loadMapFile(const char *filename)
             break;
         }
     });
+
+    // Clear the special layers.
+    {
+        auto projectileLayer = newTransient<MapEntityLayerState> ();
+        global.mapTransientState->layers.push_back(projectileLayer);
+        global.mapTransientState->projectileEntityLayer = projectileLayer;
+    }
 }
 
 static void initializeGlobalState()
@@ -125,14 +137,44 @@ static void initializeGlobalState()
     global.isInitialized = true;
 }
 
+void Entity::kill()
+{
+    if(isDead_)
+        return;
+
+    isDead_ = true;
+    global.mapTransientState->zombieEntities.push_back(this);
+}
+
 static void updateTransientState(float delta)
 {
-    if(!global.mapTransientState)
+    auto transientState = global.mapTransientState;
+    if(!transientState)
         return;
 
     // Update the ticking entities.
-    for(auto entity : global.mapTransientState->tickingEntitites)
+    for(auto entity : transientState->tickingEntitites)
         entity->update(delta);
+
+    // Remove all of the dead entities.
+    auto areDead = [](Entity *entity){
+        return entity->isDead();
+    };
+    for(auto layer : transientState->layers)
+    {
+        if(layer->type != MapLayerType::Entities)
+            continue;
+
+        auto entityLayer = reinterpret_cast<MapEntityLayerState*> (layer);
+        entityLayer->entities.removeAllThat(areDead);
+    }
+    transientState->collisionEntities.removeAllThat(areDead);
+    transientState->tickingEntitites.removeAllThat(areDead);
+
+    // Move the zombies into the free list.
+    for(auto entity : transientState->zombieEntities)
+        transientState->freeEntities.push_back(entity);
+    transientState->zombieEntities.clear();
 }
 
 void update(float delta, const ControllerState &controllerState)

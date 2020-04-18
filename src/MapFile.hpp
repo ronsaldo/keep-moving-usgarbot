@@ -82,6 +82,42 @@ struct MapFileTileLayer : public MapFileLayer
     {
         return Box2F::withCenterAndHalfExtent(pointFromWorldIntoTileSpace(box.center(), tileExtent), vectorFromWorldIntoTileSpace(box.halfExtent(), tileExtent));
     }
+
+    inline Ray2F rayFromWorldIntoTileSpace(const Ray2F &ray, const Vector2F tileExtent) const
+    {
+        return Ray2F::fromSegment(pointFromWorldIntoTileSpace(ray.startPoint(), tileExtent), pointFromWorldIntoTileSpace(ray.endPoint(), tileExtent));
+    }
+
+    Vector2F pointFromTileIntoPixelSpace(const Vector2F &point, const Vector2F tileExtent) const
+    {
+        return (point - Vector2F(0.0f, extent.y))*(Vector2F(tileExtent.x, tileExtent.y));
+    }
+
+    Vector2F vectorFromTileIntoPixelSpace(const Vector2F &vector, const Vector2F tileExtent) const
+    {
+        return vector * tileExtent;
+    }
+
+    inline Box2F boxFromTileIntoPixelSpace(const Box2F &box, const Vector2F tileExtent) const
+    {
+        return Box2F::withCenterAndHalfExtent(pointFromTileIntoPixelSpace(box.center(), tileExtent), vectorFromTileIntoPixelSpace(box.halfExtent(), tileExtent));
+    }
+
+    Vector2F pointFromTileIntoWorldSpace(const Vector2F &point, const Vector2F tileExtent) const
+    {
+        return pointFromPixelIntoWorldSpace(pointFromTileIntoPixelSpace(point, tileExtent));
+    }
+
+    Vector2F vectorFromTileIntoWorldSpace(const Vector2F &vector, const Vector2F tileExtent) const
+    {
+        return vectorFromPixelIntoWorldSpace(vectorFromTileIntoPixelSpace(vector, tileExtent));
+    }
+
+    inline Box2F boxFromTileIntoWorldSpace(const Box2F &box, const Vector2F tileExtent) const
+    {
+        return Box2F::withCenterAndHalfExtent(pointFromTileIntoWorldSpace(box.center(), tileExtent), vectorFromTileIntoWorldSpace(box.halfExtent(), tileExtent));
+    }
+
 };
 
 struct MapFileEntity

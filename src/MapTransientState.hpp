@@ -49,6 +49,12 @@ struct MapTransientState
     // The actual list of entities.
     FixedVector<Entity, MaxNumberOfEntities> entities;
 
+    // Some special layers.
+    MapEntityLayerState *projectileEntityLayer;
+
+    // The zombie entities list.
+    FixedVector<Entity*, MaxNumberOfEntities> zombieEntities;
+
     // The free entities list.
     FixedVector<Entity*, MaxNumberOfEntities> freeEntities;
 

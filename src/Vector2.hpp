@@ -1,8 +1,7 @@
 #ifndef VECTOR2_HPP
 #define VECTOR2_HPP
 
-#include <math.h>
-#include <algorithm>
+#include "Scalar.hpp"
 
 class Vector2I;
 class Vector2F
@@ -53,6 +52,12 @@ public:
         return sqrt(length2());
     }
 
+    Vector2F normalized() const
+    {
+        auto l = length();
+        return *this / std::max(l, 0.00001f); // To avoid nan
+    }
+
     float cross(const Vector2F &o) const
     {
         return x*o.y - y*o.x;
@@ -68,12 +73,32 @@ public:
         return Vector2F(::ceil(x), ::ceil(y));
     }
 
+    Vector2F abs() const
+    {
+        return Vector2F(::fabs(x), ::fabs(y));
+    }
+
+    Vector2F sign() const
+    {
+        return Vector2F(::sign(x), ::sign(y));
+    }
+
     Vector2F asVector2F() const
     {
         return *this;
     }
 
     Vector2I asVector2I() const;
+
+    Vector2F maximumAxis() const
+    {
+        return x >= y ? Vector2F(1.0f, 0.0f) : Vector2F(0.0f, 1.0f);
+    }
+
+    Vector2F maximumSignedAxis() const
+    {
+        return abs().maximumAxis()*sign();
+    }
 
     const Vector2F &operator+=(const Vector2F &o)
     {
@@ -87,24 +112,30 @@ public:
         return *this;
     }
 
-    Vector2F operator+(const Vector2F &o) const
+    const Vector2F &operator*=(const Vector2F &o)
     {
-        return Vector2F(x + o.x, y + o.y);
+        *this = *this * o;
+        return *this;
     }
 
-    Vector2F operator-(const Vector2F &o) const
+    friend Vector2F operator+(const Vector2F &a, const Vector2F &b)
     {
-        return Vector2F(x - o.x, y - o.y);
+        return Vector2F(a.x + b.x, a.y + b.y);
     }
 
-    Vector2F operator*(const Vector2F &o) const
+    friend Vector2F operator-(const Vector2F &a, const Vector2F &b)
     {
-        return Vector2F(x * o.x, y * o.y);
+        return Vector2F(a.x - b.x, a.y - b.y);
     }
 
-    Vector2F operator/(const Vector2F &o) const
+    friend Vector2F operator*(const Vector2F &a, const Vector2F &b)
     {
-        return Vector2F(x / o.x, y / o.y);
+        return Vector2F(a.x * b.x, a.y * b.y);
+    }
+
+    friend Vector2F operator/(const Vector2F &a, const Vector2F &b)
+    {
+        return Vector2F(a.x / b.x, a.y / b.y);
     }
 
     Vector2F operator-() const
@@ -156,24 +187,24 @@ public:
         return x*o.y - y*o.x;
     }
 
-    Vector2I operator+(const Vector2I &o) const
+    friend Vector2I operator+(const Vector2I &a, const Vector2I &b)
     {
-        return Vector2I(x + o.x, y + o.y);
+        return Vector2I(a.x + b.x, a.y + b.y);
     }
 
-    Vector2I operator-(const Vector2I &o) const
+    friend Vector2I operator-(const Vector2I &a, const Vector2I &b)
     {
-        return Vector2I(x - o.x, y - o.y);
+        return Vector2I(a.x - b.x, a.y - b.y);
     }
 
-    Vector2I operator*(const Vector2I &o) const
+    friend Vector2I operator*(const Vector2I &a, const Vector2I &b)
     {
-        return Vector2I(x * o.x, y * o.y);
+        return Vector2I(a.x * b.x, a.y * b.y);
     }
 
-    Vector2I operator/(const Vector2I &o) const
+    friend Vector2I operator/(const Vector2I &a, const Vector2I &b)
     {
-        return Vector2I(x / o.x, y / o.y);
+        return Vector2I(a.x / b.x, a.y / b.y);
     }
 
     Vector2I operator-() const
