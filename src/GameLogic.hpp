@@ -6,6 +6,7 @@
 #include "Image.hpp"
 #include "SoundSample.hpp"
 #include "TileSet.hpp"
+#include "MapFile.hpp"
 #include <algorithm>
 
 struct GlobalState
@@ -20,6 +21,7 @@ struct GlobalState
 
     // Assets.
     TileSet mainTileSet;
+    MapFilePtr currentMap;
     SoundSamplePtr noiseSample;
 
     bool isButtonPressed(int button) const

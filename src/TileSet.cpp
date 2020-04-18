@@ -5,6 +5,6 @@
 void TileSet::loadFrom(const char *path, uint32_t tw, uint32_t th)
 {
     image.reset(hostInterface->loadImage(path));
-    tileWidth = tw;
-    tileHeight = th;
+    tileExtent = Vector2I(tw, th);
+    gridExtent = Vector2I(image->width, image->height) / tileExtent;
 }

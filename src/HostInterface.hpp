@@ -3,10 +3,12 @@
 
 #include "Image.hpp"
 #include "SoundSample.hpp"
+#include "MapFile.hpp"
 
 struct HostInterface
 {
     virtual Image *loadImage(const char *fileName) = 0;
+    virtual MapFile *loadMapFile(const char *fileName) = 0;
     virtual SoundSamplePtr loadSoundSample(const char *fileName) = 0;
 };
 

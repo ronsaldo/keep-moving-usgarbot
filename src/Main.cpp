@@ -90,6 +90,8 @@ static ControllerState currentControllerState;
 class SDL2HostInterface : public HostInterface
 {
 public:
+
+    virtual MapFile *loadMapFile(const char *fileName) override;
     virtual Image *loadImage(const char *fileName) override;
     virtual SoundSample *loadSoundSample(const char *fileName) override;
 
@@ -218,6 +220,39 @@ public:
 };
 
 SDL2HostInterface SDL2HostInterface::singleton;
+
+MapFile *SDL2HostInterface::loadMapFile(const char *fileName)
+{
+    auto fullPath = makeFullAssetPath(fileName);
+    auto file = fopen(fullPath.c_str(), "rb");
+    if(!file)
+    {
+        fprintf(stderr, "Failed to load map file from: %s\n", fullPath.c_str());
+        return nullptr;
+    }
+
+    fseek(file, 0, SEEK_END);
+    auto fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    std::unique_ptr<MapFile> result(new MapFile());
+    result->mapFileSize = fileSize;
+    result->mapFileContent.reset(new uint8_t[fileSize]);
+
+    if(fread(result->mapFileContent.get(), fileSize, 1, file) != 1)
+    {
+        fprintf(stderr, "Failed read the content from map file %s\n", fullPath.c_str());
+        return nullptr;
+    }
+
+    if(!result->validate())
+    {
+        fprintf(stderr, "Map file %s is invalid\n", fullPath.c_str());
+        return nullptr;
+    }
+
+    return result.release();
+}
 
 Image *SDL2HostInterface::loadImage(const char *fileName)
 {

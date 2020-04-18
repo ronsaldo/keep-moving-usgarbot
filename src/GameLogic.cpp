@@ -33,6 +33,7 @@ static void initializeGlobalState()
 
     // This is the place for loading the required game assets.
     global.mainTileSet.loadFrom("tileset.png");
+    global.currentMap.reset(hostInterface->loadMapFile("test.map"));
 
     global.isInitialized = true;
 }
@@ -79,59 +80,71 @@ public:
     {
         renderBackground();
 
-        blitTile(global.mainTileSet, 0, 0, sawToothWave(global.currentTime*0.5)*200, -sawToothWave(global.currentTime*0.125 + 0.5)*480*0, true, false);
-        /*blitTile(global.mainTileSet, 0, 0, 0, 0, false ,false);
-        blitTile(global.mainTileSet, 0, 0, 32, 0, true, false);
-        blitTile(global.mainTileSet, 0, 0, 0, 32, false ,true);
-        blitTile(global.mainTileSet, 0, 0, 32, 32, true, true);*/
+        global.currentMap->tileLayersDo([&](const MapFileTileLayer &layer) {
+            renderTileLayer(layer);
+        });
     }
 
-    void blitTile(const TileSet &tileSet, int tileX, int tileY, int32_t x, int32_t y, bool flipX = false, bool flipY = false)
+    void renderTileLayer(const MapFileTileLayer &layer)
     {
-        blitImage(tileSet.image, tileX*tileSet.tileWidth, tileY*tileSet.tileHeight, tileSet.tileWidth, tileSet.tileHeight, x, y, flipX, flipY);
+        auto &tileSet = global.mainTileSet;
+
+        auto source = layer.tiles;
+        for(int ly = 0; ly < layer.extent.y; ++ly)
+        {
+            for(int lx = 0; lx < layer.extent.x; ++lx)
+            {
+                auto tileIndex = *source;
+                if(tileIndex > 0)
+                {
+                    Vector2I tileGridIndex;
+                    if(tileSet.computeTileColumnAndRowFromIndex(tileIndex - 1, &tileGridIndex))
+                    {
+                        blitTile(tileSet, tileGridIndex, Vector2I(lx, ly)*tileSet.tileExtent);
+                    }
+                }
+
+                ++source;
+            }
+        }
     }
 
-    void blitImage(const ImagePtr &image, int32_t sx, int32_t sy, int32_t w, int32_t h, int32_t x, int32_t y, bool flipX = false, bool flipY = false)
+    void blitTile(const TileSet &tileSet, const Vector2I &tileGridIndex, const Vector2I &destination, bool flipX = false, bool flipY = false)
     {
-        //printf("%d %d %d %d -> %d %d\n", sx, sy, w, h, x, y);
+        blitImage(tileSet.image, Box2I::withMinAndExtent(tileSet.tileExtent*tileGridIndex, tileSet.tileExtent), destination, flipX, flipY);
+    }
 
-        auto destMinX = std::max(x, 0);
-        auto destMaxX = std::min(x + w, (int32_t)framebuffer.width);
-        if(destMinX >= destMaxX) return;
+    void blitImage(const ImagePtr &image, const Box2I &sourceRectangle, const Vector2I &destination, bool flipX = false, bool flipY = false)
+    {
+        auto extent = sourceRectangle.extent();
+        auto destRectangle = Box2I::withMinAndExtent(destination, sourceRectangle.extent());
+        auto clippedDest = destRectangle.intersectionWithBox(framebuffer.bounds());
+        if(clippedDest.isEmpty())
+            return;
 
-        auto destMinY = std::max(y, 0);
-        auto destMaxY = std::min(y + h, (int32_t)framebuffer.height);
-        if(destMinY >= destMaxY) return;
+        auto copyOffset = clippedDest.min - destination;
+        auto clippedSource = Box2I(sourceRectangle.min + copyOffset, sourceRectangle.max);
 
-        auto copyOffsetX = destMinX - x;
-        auto copyOffsetY = destMinY - y;
-
-        auto copyX = sx + copyOffsetX;
-        auto copyY = sy + copyOffsetY;
-
-        auto sourceMinX = std::max(0, copyX);
-        auto sourceMinY = std::max(0, copyY);
-
-        auto destRow = framebuffer.pixels + framebuffer.pitch*destMinY + destMinX*4;
+        auto destRow = framebuffer.pixels + framebuffer.pitch*clippedDest.min.y + clippedDest.min.x*4;
         auto sourceRow = image->data.get();
         if(flipX)
-            sourceRow += (w - sourceMinX - 1)*4;
+            sourceRow += (extent.x - clippedSource.min.x - 1)*4;
         else
-            sourceRow += sourceMinX*4;
+            sourceRow += clippedSource.min.x*4;
 
         if(flipY)
-            sourceRow += image->pitch*(h - sourceMinY - 1);
+            sourceRow += image->pitch*(extent.y - clippedSource.min.y - 1);
         else
-            sourceRow += image->pitch*sourceMinY;
+            sourceRow += image->pitch*clippedSource.min.y;
 
         auto sourceRowIncrement = flipX ? -1 : 1;
         auto sourcePitch = flipY ? int(-image->pitch) : int(image->pitch);
 
-        for(int32_t y = destMinY; y < destMaxY; ++y)
+        for(int32_t y = clippedDest.min.y; y < clippedDest.max.y; ++y)
         {
             auto dest = reinterpret_cast<uint32_t*> (destRow);
             auto source = reinterpret_cast<uint32_t*> (sourceRow);
-            for(int32_t x = destMinX; x < destMaxX; ++x)
+            for(int32_t x = clippedDest.min.x; x < clippedDest.max.x; ++x)
             {
                 auto sourcePixel = *source;
                 auto alpha = (sourcePixel >> 24) & 0xff;
