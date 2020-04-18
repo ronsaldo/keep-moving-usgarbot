@@ -3,6 +3,7 @@
 
 #include "Vector2.hpp"
 
+class Box2I;
 class Box2F
 {
 public:
@@ -83,6 +84,13 @@ public:
     {
         return Box2F(min + v, max + v);
     }
+
+    Box2F scaledCoordinatesBy(const Vector2F &v) const
+    {
+        return Box2F(min*v, max*v);
+    }
+
+    Box2I asBox2I() const;
 
     Vector2F min;
     Vector2F max;
@@ -172,5 +180,10 @@ public:
     Vector2I min;
     Vector2I max;
 };
+
+inline Box2I Box2F::asBox2I() const
+{
+    return Box2I(min.floor().asVector2I(), max.floor().asVector2I());
+}
 
 #endif //BOX2_HPP

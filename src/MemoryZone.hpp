@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 
 class MemoryZone
 {
@@ -31,9 +32,11 @@ public:
 
     uint8_t *allocateBytes(size_t byteCount)
     {
-        assert(currentPosition + byteCount <= size);
+        auto alignedByteCount = (byteCount + 15) & (-16);
+
+        assert(currentPosition + alignedByteCount <= size);
         auto result = data + currentPosition;
-        currentPosition += byteCount;
+        currentPosition += alignedByteCount;
         return result;
     }
 

@@ -58,6 +58,7 @@ struct MapFileEntity
 struct MapFileEntityLayer : public MapFileLayer
 {
     uint32_t entityCount;
+    MapFileEntity entities[];
 };
 
 class MapFile
@@ -83,13 +84,9 @@ public:
         }
     }
 
-    template<typename FT>
-    void tileLayersDo(const FT &f) {
-        layersDo([&](const MapFileLayer &layer)
-        {
-            if(layer.type == MapFileLayerType::Tiles)
-                f(reinterpret_cast<const MapFileTileLayer &> (layer));
-        });
+    int32_t height() const
+    {
+        return header().extent.y * header().tileExtent.y;
     }
 
     size_t mapFileSize;

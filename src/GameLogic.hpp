@@ -10,6 +10,9 @@
 #include <algorithm>
 
 #define PixelsPerUnit 32.0f
+#define UnitsPerPixel (1.0f/PixelsPerUnit)
+
+struct MapTransientState;
 
 struct GlobalState
 {
@@ -29,6 +32,9 @@ struct GlobalState
     // Camera/player.
     Vector2F cameraPosition;
 
+    // The transient state. To keep the per map specific data.
+    MapTransientState *mapTransientState;
+
     bool isButtonPressed(int button) const
     {
         return controllerState.getButton(button) && !oldControllerState.getButton(button);
@@ -47,7 +53,9 @@ uint8_t *allocateTransientBytes(size_t byteCount);
 template<typename T>
 T *newTransient()
 {
-    return allocateTransientBytes(sizeof(T));
+    auto buffer = allocateTransientBytes(sizeof(T));
+    new (buffer) T;
+    return reinterpret_cast<T*> (buffer);
 }
 
 #endif //SIMPLE_GAME_TEMPLATE_GAME_LOGIC_INTERFACE_HPP

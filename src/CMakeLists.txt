@@ -3,6 +3,8 @@ set(SimpleGameTemplateGameLogic_SOURCES
     GameLogic.cpp
     GameLogic.hpp
     TileSet.cpp
+    EntityBehavior.cpp
+    Renderer.cpp
 )
 
 set(SimpleGameTemplate_SOURCES

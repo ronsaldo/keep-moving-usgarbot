@@ -106,6 +106,6 @@
 </data>
  </layer>
  <objectgroup id="2" name="Entities">
-  <object id="1" name="P1" type="PlayerSpawn" x="260" y="165" width="38" height="29"/>
+  <object id="1" name="P1" type="Player" x="317" y="205" width="38" height="29"/>
  </objectgroup>
 </map>
