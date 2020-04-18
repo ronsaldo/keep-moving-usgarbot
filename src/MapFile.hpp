@@ -6,6 +6,7 @@
 #include "Vector2.hpp"
 #include "Box2.hpp"
 #include "FixedString.hpp"
+#include "Coordinates.hpp"
 
 #define MapFileHeader_MagicCode "MAP "
 #define MapFileHeader_MagicCodeSize 4
@@ -46,6 +47,41 @@ struct MapFileTileLayer : public MapFileLayer
 {
     Vector2I extent;
     uint16_t tiles[]; // extent x * extent y tiles.
+
+    Box2I tileGridBounds() const
+    {
+        return Box2I(0.0f, extent);
+    }
+
+    Vector2F pointFromPixelIntoTileSpace(const Vector2F &point, const Vector2F tileExtent) const
+    {
+        return point/(Vector2F(tileExtent.x, tileExtent.y)) + Vector2F(0.0f, extent.y);
+    }
+
+    Vector2F vectorFromPixelIntoTileSpace(const Vector2F &vector, const Vector2F tileExtent) const
+    {
+        return vector / tileExtent;
+    }
+
+    inline Box2F boxFromPixelIntoTileSpace(const Box2F &box, const Vector2F tileExtent) const
+    {
+        return Box2F::withCenterAndHalfExtent(pointFromPixelIntoTileSpace(box.center(), tileExtent), vectorFromPixelIntoTileSpace(box.halfExtent(), tileExtent));
+    }
+
+    Vector2F pointFromWorldIntoTileSpace(const Vector2F &point, const Vector2F tileExtent) const
+    {
+        return pointFromPixelIntoTileSpace(pointFromWorldIntoPixelSpace(point), tileExtent);
+    }
+
+    Vector2F vectorFromWorldIntoTileSpace(const Vector2F &vector, const Vector2F tileExtent) const
+    {
+        return vectorFromPixelIntoTileSpace(vectorFromWorldIntoPixelSpace(vector), tileExtent);
+    }
+
+    inline Box2F boxFromWorldIntoTileSpace(const Box2F &box, const Vector2F tileExtent) const
+    {
+        return Box2F::withCenterAndHalfExtent(pointFromWorldIntoTileSpace(box.center(), tileExtent), vectorFromWorldIntoTileSpace(box.halfExtent(), tileExtent));
+    }
 };
 
 struct MapFileEntity

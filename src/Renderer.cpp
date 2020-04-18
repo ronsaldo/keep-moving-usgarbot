@@ -14,13 +14,23 @@ public:
     Renderer(const Framebuffer &f)
         : framebuffer(f)
     {
-        halfFramebufferOffset = f.extent().asVector2F()/Vector2F(2, 2);
+        halfFramebufferOffset = f.extent().asVector2F()/2;
+        halfFramebufferUnitOffset = halfFramebufferOffset*Vector2F(UnitsPerPixel, -UnitsPerPixel);
+
+        {
+            auto fbBounds = f.bounds();
+            viewVolumeInUnits = Box2F::withCenterAndHalfExtent(fbBounds.center().asVector2F()*Vector2F(UnitsPerPixel, -UnitsPerPixel), fbBounds.halfExtent().asVector2F()*UnitsPerPixel);
+        }
     }
 
     const Framebuffer &framebuffer;
+    Box2F viewVolumeInUnits;
+    Box2F worldViewVolumeInUnits;
+
     Vector2F cameraTranslation;
     Vector2I cameraPixelOffset;
     Vector2F halfFramebufferOffset;
+    Vector2F halfFramebufferUnitOffset;
 
     void renderBackground()
     {
@@ -39,43 +49,16 @@ public:
         }
     }
 
-    Vector2F viewToPixels(const Vector2F &v) const
+    Box2F worldToViewPixels(const Box2F &b) const
     {
-        return v*Vector2F(PixelsPerUnit, -PixelsPerUnit) + halfFramebufferOffset;
-    }
-
-    Vector2F worldToView(const Vector2F &v) const
-    {
-        return v + cameraTranslation;
-    }
-
-    Vector2F worldToPixels(const Vector2F &v) const
-    {
-        return viewToPixels(worldToView(v));
-    }
-
-    Box2F viewToPixels(const Box2F &b) const
-    {
-        auto l = viewToPixels(b.min);
-        auto u = viewToPixels(b.max);
-        auto result = Box2F(Vector2F(l.x, u.y), Vector2F(u.x, l.y));
-        return result;
-    }
-
-    Box2F worldToView(const Box2F &b) const
-    {
-        return b.translatedBy(cameraTranslation);
-    }
-
-    Box2F worldToPixels(const Box2F &b) const
-    {
-        return viewToPixels(worldToView(b));
+        return boxFromWorldIntoPixelSpace(b.translatedBy(cameraTranslation));
     }
 
     void renderCurrentMap()
     {
-        cameraTranslation = -Vector2F(global.cameraPosition.x, global.cameraPosition.y);
-        cameraPixelOffset = viewToPixels(cameraTranslation).floor().asVector2I();
+        cameraTranslation = -Vector2F(global.cameraPosition.x, global.cameraPosition.y) + halfFramebufferUnitOffset;
+        cameraPixelOffset = pointFromWorldIntoPixelSpace(cameraTranslation).floor().asVector2I();
+        worldViewVolumeInUnits = viewVolumeInUnits.translatedBy(-cameraTranslation);
         if(!global.mapTransientState)
             return;
 
@@ -110,13 +93,18 @@ public:
     void renderTileLayer(const MapFileTileLayer &layer)
     {
         auto &tileSet = global.mainTileSet;
-        auto layerOffset = Vector2I(0, -global.currentMap->height());
+        auto tileExtent = tileSet.tileExtent;
+        auto layerExtent = layer.extent;
+        auto layerOffset = Vector2I(0, -layerExtent.y*tileExtent.y);
 
-        auto sourceRow = layer.tiles;;
-        for(int ly = 0; ly < layer.extent.y; ++ly)
+        auto viewVolumeInTileSpace = layer.boxFromWorldIntoTileSpace(worldViewVolumeInUnits, tileExtent.asVector2F());
+        auto tileGridBounds = viewVolumeInTileSpace.asBoundingIntegerBox().intersectionWithBox(layer.tileGridBounds());
+
+        auto sourceRow = layer.tiles + tileGridBounds.min.y*layerExtent.x + tileGridBounds.min.x;
+        for(int32_t ly = tileGridBounds.min.y; ly < tileGridBounds.max.y; ++ly)
         {
             auto source = sourceRow;
-            for(int lx = 0; lx < layer.extent.x; ++lx)
+            for(int32_t lx = tileGridBounds.min.x; lx < tileGridBounds.max.x; ++lx)
             {
                 auto tileIndex = *source;
                 if(tileIndex > 0)
@@ -124,14 +112,14 @@ public:
                     Vector2I tileGridIndex;
                     if(tileSet.computeTileColumnAndRowFromIndex(tileIndex - 1, &tileGridIndex))
                     {
-                        blitTile(tileSet, tileGridIndex, layerOffset + Vector2I(lx, ly)*tileSet.tileExtent + cameraPixelOffset );
+                        blitTile(tileSet, tileGridIndex, layerOffset + Vector2I(lx, ly)*tileExtent + cameraPixelOffset );
                     }
                 }
 
                 ++source;
             }
 
-            sourceRow += layer.extent.x;
+            sourceRow += layerExtent.x;
         }
     }
 
@@ -183,7 +171,11 @@ public:
             destRow += framebuffer.pitch;
             sourceRow += sourcePitch;
         }
+    }
 
+    void fillWorldRectangle(const Box2F &rectangle, uint32_t color)
+    {
+        fillRectangle(worldToViewPixels(rectangle).asBox2I(), color);
     }
 
     void fillRectangle(const Box2I &rectangle, uint32_t color)
@@ -207,9 +199,7 @@ public:
 
             destRow += framebuffer.pitch;
         }
-
     }
-
 };
 
 void render(const Framebuffer &framebuffer)
@@ -223,8 +213,5 @@ void render(const Framebuffer &framebuffer)
 
 void EntityBehavior::renderWith(Entity *self, Renderer &renderer)
 {
-    auto bbox = self->boundingBox();
-    //printf("ebbox %f %f\n", bbox.center().x, bbox.center().y);
-    auto renderBox = renderer.worldToPixels(bbox).asBox2I();
-    renderer.fillRectangle(renderBox, self->color);
+    renderer.fillWorldRectangle(self->boundingBox(), self->color);
 }

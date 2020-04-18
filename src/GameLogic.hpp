@@ -9,9 +9,6 @@
 #include "MapFile.hpp"
 #include <algorithm>
 
-#define PixelsPerUnit 32.0f
-#define UnitsPerPixel (1.0f/PixelsPerUnit)
-
 struct MapTransientState;
 
 struct GlobalState

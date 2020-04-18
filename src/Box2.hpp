@@ -91,6 +91,7 @@ public:
     }
 
     Box2I asBox2I() const;
+    Box2I asBoundingIntegerBox() const;
 
     Vector2F min;
     Vector2F max;
@@ -184,6 +185,11 @@ public:
 inline Box2I Box2F::asBox2I() const
 {
     return Box2I(min.floor().asVector2I(), max.floor().asVector2I());
+}
+
+inline Box2I Box2F::asBoundingIntegerBox() const
+{
+    return Box2I(min.floor().asVector2I(), max.ceil().asVector2I());
 }
 
 #endif //BOX2_HPP

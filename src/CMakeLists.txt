@@ -5,6 +5,7 @@ set(SimpleGameTemplateGameLogic_SOURCES
     TileSet.cpp
     EntityBehavior.cpp
     Renderer.cpp
+    Collisions.cpp
 )
 
 set(SimpleGameTemplate_SOURCES

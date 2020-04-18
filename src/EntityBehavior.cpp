@@ -1,6 +1,7 @@
 #include "Entity.hpp"
 #include "GameLogic.hpp"
 #include "MapTransientState.hpp"
+#include "Collisions.hpp"
 
 #define ENTITY_BEHAVIOR_TYPE(typeName) static Entity ## typeName ## Behavior Entity ## typeName ## Behavior_singleton;
 #include "EntityBehaviorTypes.inc"
@@ -20,6 +21,8 @@ EntityBehavior *entityBehaviorTypeIntoClass(EntityBehaviorType type)
 void EntityCharacterBehavior::update(Entity *self, float delta)
 {
     self->position += self->velocity*delta;
+
+    self->color = isBoxCollidingWithWorld(self->boundingBox()) ? 0xff00ffff : 0xff0000ff;
 }
 
 void EntityPlayerBehavior::update(Entity *self, float delta)
