@@ -297,6 +297,11 @@ public:
     virtual void update(Entity *self, float delta) override;
     virtual void hurtAt(Entity *self, float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse) override;
 
+    virtual bool isRobot() const
+    {
+        return true;
+    }
+
     virtual float maximumJumpHeight()
     {
         return 7.0f;

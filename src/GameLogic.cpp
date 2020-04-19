@@ -179,6 +179,23 @@ static void initializeGlobalState()
     global.itemsSprites.loadFrom("items.png");
     global.robotSprites.loadFrom("robotSprites.png", 48, 64);
     global.catDogsSprites.loadFrom("catDogsSprites.png", 64, 32);
+
+    global.playerShotSample = hostInterface->loadSoundSample("laser1.wav");
+    global.enemyShotSample = hostInterface->loadSoundSample("laser3.wav");
+
+    global.playerJumpSample = hostInterface->loadSoundSample("player-jump.wav");
+    global.vipJumpSample = hostInterface->loadSoundSample("vip-jump.wav");
+
+    global.dashSample = hostInterface->loadSoundSample("dash.wav");
+    global.robotExplosionSample = hostInterface->loadSoundSample("robot-explosion.wav");
+    global.robotExplosionSample2 = hostInterface->loadSoundSample("robot-explosion2.wav");
+
+    global.healthPickupSample = hostInterface->loadSoundSample("health-pickup.wav");
+
+    global.collisionHitSample = hostInterface->loadSoundSample("wall-hit.wav");
+    global.damageReceivedSample = hostInterface->loadSoundSample("damage-received.wav");
+
+    // Start in a new map.
     global.currentLevelID = LevelID::InitialLevel;
     startNewMap();
 

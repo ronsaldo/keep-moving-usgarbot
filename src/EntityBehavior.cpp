@@ -115,6 +115,16 @@ void EntityKinematicCollidingBehavior::sweepCollidingAlongSegment(Entity *self, 
         collisionTestResult.collidingEntity->applyImpulse(self->velocity*self->mass*collisionNormal.abs()*self->coefficientOfRestitution);
     }
 
+    if(isPlayer())
+    {
+        auto lostSpeed = fabs(self->velocity.dot(collisionNormal));
+        if(lostSpeed > 5.0f && maxDepth >= 5)
+        {
+            global.collisionHitSample->play(false, 0.1f);
+        }
+
+    }
+
     // Supress the velocity along the collision normal.
     auto tangentMask = Vector2F::ones() - collisionNormal.abs();
     self->velocity *= tangentMask;
@@ -160,6 +170,19 @@ void EntityCharacterBehavior::spawn(Entity *self)
 
 void EntityCharacterBehavior::die(Entity *self)
 {
+    if(isRobot())
+    {
+        if(isVIP() || isPlayer())
+        {
+            global.robotExplosionSample->play(false, 0.7f);
+            global.robotExplosionSample2->play(false, 0.7f);
+        }
+        else
+        {
+            global.robotExplosionSample->play(false, 0.3f);
+        }
+    }
+
     self->kill();
 }
 
@@ -230,6 +253,11 @@ void EntityCharacterBehavior::jump(Entity *self)
         return;
 
     self->velocity += jumpVelocity();
+
+    if(isVIP())
+        global.vipJumpSample->play(false, 0.3f);
+    if(isPlayer())
+        global.playerJumpSample->play(false, 0.2f);
 }
 
 bool EntityCharacterBehavior::canDash(Entity *self)
@@ -243,6 +271,7 @@ void EntityCharacterBehavior::dash(Entity *self)
         return;
 
     self->velocity += dashSpeed() * Vector2F(self->lookDirection.x, 0.0f);
+    global.dashSample->play(false, 0.3f);
 }
 
 void EntityCharacterBehavior::shoot(Entity *self, float bulletSpeed, float bulletLifeTime, int currentAmmunitionPower, float bulletMass)
@@ -261,6 +290,16 @@ void EntityCharacterBehavior::shoot(Entity *self, float bulletSpeed, float bulle
     bullet->contactDamage = currentAmmunitionPower;
     bullet->setMass(bulletMass);
     bullet->spawn();
+
+    if(isPlayer())
+    {
+        global.playerShotSample->play(false, 0.2f);
+    }
+    else
+    {
+        global.enemyShotSample->play(false, 0.1f);
+
+    }
 }
 
 void EntityCharacterBehavior::shoot(Entity *self)
@@ -281,6 +320,8 @@ void EntityCharacterBehavior::hurtAt(Entity *self, float damage, const Vector2F 
     self->applyImpulse(hitImpulse);
     self->hitPoints = std::max(self->hitPoints - damage, 0.0f);
     self->remainingInvincibilityTime = defaultInvincibilityPeriodDuration();
+
+    global.damageReceivedSample->play(false, 0.1f);
 }
 
 //============================================================================
@@ -639,5 +680,6 @@ void EntityItemMedkitBehavior::touches(Entity *self, Entity *touched)
     {
         touched->hitPoints = std::min((int)touched->maxHitPoints, std::max(int(touched->hitPoints) - self->contactDamage, 0));
         self->kill();
+        global.healthPickupSample->play(false, 0.5f);
     }
 }

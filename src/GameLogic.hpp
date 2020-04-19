@@ -32,14 +32,32 @@ struct GlobalState
     ControllerState oldControllerState;
     ControllerState controllerState;
 
-    // Assets.
+    // Sprited/tiles.
     TileSet mainTileSet;
     TileSet hudTiles;
     TileSet itemsSprites;
     TileSet robotSprites;
     TileSet catDogsSprites;
+
+    // The current map spec.
     MapFilePtr currentMap;
-    SoundSamplePtr noiseSample;
+
+    // Sound samples
+    SoundSamplePtr playerShotSample;
+    SoundSamplePtr enemyShotSample;
+
+    SoundSamplePtr playerJumpSample;
+    SoundSamplePtr vipJumpSample;
+
+    SoundSamplePtr dashSample;
+
+    SoundSamplePtr robotExplosionSample;
+    SoundSamplePtr robotExplosionSample2;
+
+    SoundSamplePtr healthPickupSample;
+
+    SoundSamplePtr collisionHitSample;
+    SoundSamplePtr damageReceivedSample;
 
     // Camera/player.
     Vector2F cameraPosition;

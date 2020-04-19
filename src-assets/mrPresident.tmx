@@ -34,6 +34,6 @@
   <object id="6" type="EnemyPatrolDog" x="2337.33" y="434.667" width="45.3333" height="72"/>
   <object id="7" type="EnemyPatrolDog" x="2096" y="404" width="45.3333" height="72"/>
   <object id="8" type="GoalSensor" x="3008" y="353.333" width="158.667" height="62.6667"/>
-  <object id="9" name="VIP" type="DonMeowth" x="138.333" y="206.833" width="38" height="29"/>
+  <object id="9" name="VIP" type="MrPresident" x="138.333" y="206.833" width="38" height="29"/>
  </objectgroup>
 </map>

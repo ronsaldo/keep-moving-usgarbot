@@ -165,9 +165,10 @@ static std::string makeFullAssetPath(const std::string virtualPath)
 class NullSoundSample : public SoundSample
 {
 public:
-    virtual void play(bool looped) override
+    virtual void play(bool looped, float volume) override
     {
         (void) looped;
+        (void) volume;
     }
 
     virtual void resume() override {}
@@ -186,9 +187,11 @@ public:
         Mix_FreeChunk(chunk);
     }
 
-    virtual void play(bool looped) override
+    virtual void play(bool looped, float volume) override
     {
         playingChannel = Mix_PlayChannel(-1, chunk, looped ? -1 : 0);
+        if(playingChannel >= 0)
+            Mix_Volume(playingChannel, MIX_MAX_VOLUME*volume);
     }
 
     virtual void resume() override
