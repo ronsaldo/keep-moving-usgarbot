@@ -133,6 +133,7 @@ static void initializeGlobalState()
     // This is the place for loading the required game assets.
     global.mainTileSet.loadFrom("tileset.png");
     global.robotSprites.loadFrom("robotSprites.png", 48, 64);
+    global.catDogsSprites.loadFrom("catDogsSprites.png", 64, 32);
     loadMapFile("test.map");
 
     global.isInitialized = true;

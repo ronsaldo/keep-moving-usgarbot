@@ -404,6 +404,7 @@ void EntityEnemySentryBehavior::update(Entity *self, float delta)
         self->lookDirection.x = -self->lookDirection.x;
         self->remainingActionTime = directionLookingTime();
     }
+    self->spriteFlipX = self->lookDirection.x < 0.0f;
 
     Super::update(self, delta);
 }
@@ -450,6 +451,8 @@ void EntityEnemyPatrolBehavior::update(Entity *self, float delta)
         self->walkDirection = Vector2F(self->lookDirection.x, 0.0f);
     }
 
+    self->spriteFlipX = self->lookDirection.x < 0.0f;
+
     Super::update(self, delta);
 }
 
@@ -459,6 +462,11 @@ void EntityEnemyPatrolBehavior::update(Entity *self, float delta)
 void EntityEnemyPatrolDogBehavior::spawn(Entity *self)
 {
     Super::spawn(self);
+
+    self->setExtent(Vector2F(2.0f, 1.0f));
+    self->spriteSheet = &global.catDogsSprites;
+    self->spriteIndex = Vector2I(0, 1);
+    self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel)*0.0f;
 }
 
 //============================================================================
@@ -467,6 +475,11 @@ void EntityEnemyPatrolDogBehavior::spawn(Entity *self)
 void EntityEnemySentryDogBehavior::spawn(Entity *self)
 {
     Super::spawn(self);
+
+    self->setExtent(Vector2F(2.0f, 1.0f));
+    self->spriteSheet = &global.catDogsSprites;
+    self->spriteIndex = Vector2I(0, 1);
+    self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel)*0.0f;
 }
 
 //============================================================================
@@ -513,6 +526,7 @@ void EntityScoltedVIPBehavior::update(Entity *self, float delta)
         self->walkDirection = 0.0f;
     }
 
+    self->spriteFlipX = self->lookDirection.x < 0.0f;
 
     Super::update(self, delta);
 }
@@ -524,7 +538,11 @@ void EntityScoltedVIPBehavior::update(Entity *self, float delta)
 void EntityDonMeowthBehavior::spawn(Entity *self)
 {
     Super::spawn(self);
-    self->setExtent(Vector2F(2.0f, 1.0f));
+    self->setExtent(Vector2F(1.8f, 0.6f));
+
+    self->spriteSheet = &global.catDogsSprites;
+    self->spriteIndex = Vector2I(0, 0);
+    self->spriteOffset = Vector2F(-0.2f, 0.2 + -3*UnitsPerPixel);
 }
 
 //============================================================================
