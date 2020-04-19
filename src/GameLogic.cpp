@@ -55,6 +55,7 @@ static EntityBehaviorType parseEntityTypeName(const std::string &name)
     auto it = EntityTypeToBehaviorType.find(name);
     if(it != EntityTypeToBehaviorType.end())
         return it->second;
+
     return EntityBehaviorType::Null;
 }
 
@@ -134,13 +135,37 @@ static void startNewMap()
     switch(global.currentLevelID)
     {
     case LevelID::DonMeowth:
-        loadMapFile("donMeowth.map", "Escort Don Meoth!!!");
+        loadMapFile("donMeowth.map", "Escort Don Meowth!!!");
+        break;
+    case LevelID::MrPresident:
+        loadMapFile("mrPresident.map", "Protect the President!!!");
         break;
     case LevelID::Test:
     default:
         loadMapFile("test.map", "Escort the ^!!!");
         break;
     }
+}
+
+static LevelID nextLevelForID(LevelID oldID)
+{
+    switch(oldID)
+    {
+    case LevelID::DonMeowth: return LevelID::MrPresident;
+    default: return oldID;
+    }
+}
+
+static void startNextMap()
+{
+    if(global.currentLevelID == LevelID::FinalLevel)
+    {
+        global.isGameFinished = true;
+        return;
+    }
+
+    global.currentLevelID = nextLevelForID(global.currentLevelID);
+    startNewMap();
 }
 
 static void initializeGlobalState()
@@ -151,6 +176,7 @@ static void initializeGlobalState()
     // This is the place for loading the required game assets.
     global.mainTileSet.loadFrom("tileset.png");
     global.hudTiles.loadFrom("hud.png");
+    global.itemsSprites.loadFrom("items.png");
     global.robotSprites.loadFrom("robotSprites.png", 48, 64);
     global.catDogsSprites.loadFrom("catDogsSprites.png", 64, 32);
     global.currentLevelID = LevelID::InitialLevel;
@@ -175,7 +201,7 @@ static void updateTransientState(float delta)
         return;
 
         // Pause button
-    if(!transientState->isGameOver && global.isButtonPressed(ControllerButton::Start))
+    if(!(transientState->isGameOver || global.isGameFinished) && global.isButtonPressed(ControllerButton::Start))
         global.isPaused = !global.isPaused;
 
     if(transientState->isGameOver &&
@@ -188,10 +214,27 @@ static void updateTransientState(float delta)
     }
 
 
+    if(global.isGameFinished && global.isButtonPressed(ControllerButton::Start))
+    {
+        global.currentLevelID = LevelID::InitialLevel;
+        global.isGameFinished = false;
+        startNewMap();
+        if(!transientState)
+            return;
+    }
+
     if(global.isPaused)
         return;
 
+    if(!transientState->isGameOver && transientState->isGoalReached && transientState->timeInGoal > 0.5f)
+    {
+        startNextMap();
+        if(!transientState)
+            return;
+    }
+
     // The time of the active message
+    transientState->timeInMap += delta;
     if(transientState->currentMessageRemainingTime > 0.0f)
         transientState->currentMessageRemainingTime -= delta;
 
@@ -227,6 +270,10 @@ static void updateTransientState(float delta)
     for(auto entity : transientState->zombieEntities)
         transientState->freeEntities.push_back(entity);
     transientState->zombieEntities.clear();
+
+    if(transientState->isGoalReached)
+        transientState->timeInGoal += delta;
+
 }
 
 void update(float delta, const ControllerState &controllerState)

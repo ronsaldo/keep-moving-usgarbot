@@ -55,6 +55,7 @@ public:
     float remainingBulletReloadTime;
     float remainingActionTime;
     uint32_t hitPoints;
+    uint32_t maxHitPoints;
     int contactDamage;
 
     // Visual attributes
@@ -124,7 +125,10 @@ public:
     void update(float delta);
     void renderWith(Renderer &renderer);
     void hurtAt(float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse);
+    void dropToFloor();
+    
     bool needsTicking();
+    bool isSensor();
     bool isPlayer();
     bool isVIP();
 };
@@ -174,6 +178,11 @@ public:
     {
         return false;
     }
+
+    virtual bool isSensor()
+    {
+        return false;
+    }
 };
 
 EntityBehavior *entityBehaviorTypeIntoClass(EntityBehaviorType type);
@@ -206,6 +215,11 @@ inline bool Entity::isPlayer()
 inline bool Entity::isVIP()
 {
     return entityBehaviorTypeIntoClass(type)->isVIP();
+}
+
+inline bool Entity::isSensor()
+{
+    return entityBehaviorTypeIntoClass(type)->isSensor();
 }
 
 class EntityNullBehavior : public EntityBehavior
@@ -521,6 +535,62 @@ class EntityDoorBehavior : public EntityBehavior
 public:
 };
 
+
+class EntitySensorBehavior : public EntityBehavior
+{
+public:
+    typedef EntityBehavior Super;
+
+    virtual void touches(Entity *self, Entity *touched)
+    {
+        (void)self;
+        (void)touched;
+    }
+
+    virtual void update(Entity *self, float delta) override;
+
+    virtual bool needsTicking(Entity *self)
+    {
+        (void)self;
+        return true;
+    }
+
+};
+
+class EntityInvisibleSensorBehavior : public EntitySensorBehavior
+{
+public:
+    typedef EntityBehavior Super;
+
+    virtual void renderWith(Entity *self, Renderer &renderer) override;
+
+};
+
+class EntityGoalSensorBehavior : public EntityInvisibleSensorBehavior
+{
+public:
+    typedef EntityInvisibleSensorBehavior Super;
+
+    virtual void touches(Entity *self, Entity *touched) override;
+};
+
+class EntityItemBehavior : public EntitySensorBehavior
+{
+public:
+    typedef EntitySensorBehavior Super;
+
+    void dropToFloor(Entity *self);
+};
+
+class EntityItemMedkitBehavior : public EntityItemBehavior
+{
+public:
+    typedef EntityItemBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+
+    virtual void touches(Entity *self, Entity *touched) override;
+};
 
 Entity *instatiateEntityInLayer(MapEntityLayerState *entityLayer, EntityBehaviorType type);
 

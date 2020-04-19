@@ -11,15 +11,15 @@
 static std::string CharacterSet = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,?!@0123456789^[]";
 static uint32_t RainbowColorTable[] {
     0xff0000cc,
-    0xff0040cc,
+    0xff004fcc,
     0xff00cc00,
 
     0xffcc0000,
-    0xff40cc00,
+    0xff4fcc00,
     0xff00cccc,
 
     0xffcccc00,
-    0xffcc0040,
+    0xffcc004f,
     0xffcc00cc,
 
 };
@@ -204,9 +204,6 @@ public:
         {
             drawCharacter(vipFollowing ? ']' : '[', hudOffset + Vector2I(4*tileExtent.x, tileExtent.y), vipFollowing ? 0xff00cc00 : 0xff0000cc);
         }
-
-        if(transientState->isGameOver)
-            drawGlobalRainbowMessage("Game over");
     }
 
     Vector2I positionForCenteredStringOfSize(uint32_t size)
@@ -219,12 +216,6 @@ public:
 
     void renderActiveMessage()
     {
-        if(global.isPaused)
-        {
-            drawGlobalRainbowMessage("Paused");
-            return;
-        }
-
         auto transientState = global.mapTransientState;
         if(!transientState)
             return;
@@ -238,6 +229,24 @@ public:
         }
     }
 
+    void renderGameStateMessage()
+    {
+        auto transientState = global.mapTransientState;
+
+        if(global.isGameFinished)
+        {
+            drawGlobalRainbowMessage("Congratulations!!!.");
+        }
+        else if(transientState && transientState->isGameOver)
+        {
+            drawGlobalRainbowMessage("Game over");
+        }
+        else if(global.isPaused)
+        {
+            drawGlobalRainbowMessage("Paused");
+        }
+    }
+
     void drawGlobalRainbowMessage(const std::string &message)
     {
         float wavePhase = global.currentTime*3.0;
@@ -246,12 +255,48 @@ public:
             wavePhase, rainbowPhase);
     }
 
+    void postProcess()
+    {
+        auto transientState = global.mapTransientState;
+        if(!transientState)
+            return;
+
+        float fadeFactor = 1.0f;
+        fadeFactor *= std::min(transientState->timeInMap/0.5f, 1.0f);
+        fadeFactor *= std::max(1.0f - transientState->timeInGameOver/0.5f, 0.0f)*0.5f + 0.5f;
+        fadeFactor *= std::max(1.0f - transientState->timeInGoal/0.5f, 0.0f)*0.5f + 0.5f;
+        if(global.isPaused)
+            fadeFactor *= 0.7f;
+
+        if(fadeFactor >= 1.0f)
+            return;
+
+        uint32_t fadeChannelMask = std::min(uint32_t(0x7f*fadeFactor), 0xffu);
+
+
+        uint32_t bitMask = fadeChannelMask | (fadeChannelMask<<8) | (fadeChannelMask << 16) | (fadeChannelMask<<24);
+
+        auto destRow = framebuffer.pixels;
+        for(uint32_t y = 0; y < framebuffer.height; ++y)
+        {
+            auto dest = reinterpret_cast<uint32_t*> (destRow);
+            for(uint32_t x = 0; x < framebuffer.width; ++x)
+            {
+                *dest++ &= bitMask;
+            }
+
+            destRow += framebuffer.pitch;
+        }
+    }
+
     void render()
     {
         renderBackground();
         renderCurrentMap();
         renderHUD();
         renderActiveMessage();
+        postProcess();
+        renderGameStateMessage();
     }
 
     void renderTileLayer(const MapFileTileLayer &layer)
@@ -446,4 +491,11 @@ void EntityBehavior::renderWith(Entity *self, Renderer &renderer)
     }
 
     //renderer.fillWorldRectangle(self->debugSensor, 0xff202020);
+}
+
+void EntityInvisibleSensorBehavior::renderWith(Entity *self, Renderer &renderer)
+{
+    (void)self;
+    (void)renderer;
+    //renderer.fillWorldRectangle(self->boundingBox(), 0xff208080);
 }

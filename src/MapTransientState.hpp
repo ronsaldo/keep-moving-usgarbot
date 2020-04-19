@@ -73,9 +73,16 @@ struct MapTransientState
     SmallFixedString<32> currentMessage;
     float currentMessageRemainingTime;
 
+    // How much do we have in this map?
+    float timeInMap;
+
     // Is this a game over?
     bool isGameOver;
     float timeInGameOver;
+
+    // Has the goal been reached.
+    bool isGoalReached;
+    float timeInGoal;
 };
 
 #endif //MAP_TRANSIENT_STATE_HPP

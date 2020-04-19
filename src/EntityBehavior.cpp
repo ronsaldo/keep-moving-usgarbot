@@ -28,6 +28,20 @@ void Entity::spawn()
         global.mapTransientState->collisionEntities.push_back(this);
 }
 
+void Entity::dropToFloor()
+{
+    auto floorRay = Ray2F(position, Vector2F(0.0f, -1.0f), 0.0f, 100.0f);
+
+    CollisionSweepTestResult collisionTestResult;
+    collisionTestResult.entityExclusionSet.push_back(this);
+
+    // No collision, nothing interesting is required.
+    sweepCollisionBoxAlongRay(halfExtent, floorRay, collisionTestResult);
+
+    if(collisionTestResult.hasCollision)
+        position = floorRay.pointAtT(collisionTestResult.collisionDistance);
+}
+
 //============================================================================
 // EntityBulletBehavior
 //============================================================================
@@ -138,6 +152,7 @@ void EntityCharacterBehavior::spawn(Entity *self)
     self->setMass(65.0f);
     self->coefficientOfRestitution = 0.8f;
     self->hitPoints = 1;
+    self->maxHitPoints = 100;
     self->lookDirection = Vector2F(1.0f, 0.0f);
     self->acceleration = myGravity();
     self->computeDampingForTerminalVelocity(myTerminalVelocity() + fallTerminalVelocity(), myEngineAcceleration() + myGravity());
@@ -284,11 +299,12 @@ void EntityPlayerBehavior::spawn(Entity *self)
     self->spriteSheet = &global.robotSprites;
     self->spriteIndex = Vector2I(0, 0);
     self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel);
+    self->dropToFloor();
 }
 
 void EntityPlayerBehavior::update(Entity *self, float delta)
 {
-    if(global.mapTransientState->isGameOver)
+    if(global.isGameFinished || global.mapTransientState->isGameOver)
     {
         Super::update(self, delta);
 
@@ -551,6 +567,8 @@ void EntityDonMeowthBehavior::spawn(Entity *self)
     self->spriteSheet = &global.catDogsSprites;
     self->spriteIndex = Vector2I(0, 0);
     self->spriteOffset = Vector2F(-0.2f, 0.2 + -3*UnitsPerPixel);
+
+    self->dropToFloor();
 }
 
 //============================================================================
@@ -560,4 +578,63 @@ void EntityDonMeowthBehavior::spawn(Entity *self)
 void EntityMrPresidentBehavior::spawn(Entity *self)
 {
     Super::spawn(self);
+
+    self->dropToFloor();
+}
+
+//============================================================================
+// EntitySensorBehavior
+//============================================================================
+
+void EntitySensorBehavior::update(Entity *self, float delta)
+{
+    Super::update(self, delta);
+
+    auto myBBox = self->boundingBox();
+    for(auto entity : global.mapTransientState->collisionEntities)
+    {
+        if(entity == self || entity->isDead())
+            continue;
+
+        if(entity->boundingBox().intersectsWithBox(myBBox))
+            touches(self, entity);
+    }
+}
+
+//============================================================================
+// EntityGoalSensorBehavior
+//============================================================================
+void EntityGoalSensorBehavior::touches(Entity *self, Entity *touched)
+{
+    (void)self;
+    if(touched->isVIP())
+        global.mapTransientState->isGoalReached = true;
+}
+
+//============================================================================
+// EntityItemMedkitBehavior
+//============================================================================
+
+void EntityItemMedkitBehavior::spawn(Entity *self)
+{
+    Super::spawn(self);
+    self->contactDamage = -20;
+    self->setExtent(1.0f);
+
+    self->spriteSheet = &global.itemsSprites;
+    self->spriteIndex = Vector2I(0, 0);
+
+    self->dropToFloor();
+}
+
+void EntityItemMedkitBehavior::touches(Entity *self, Entity *touched)
+{
+    if(self->isDead())
+        return;
+
+    if(touched->isPlayer() || touched->isVIP())
+    {
+        touched->hitPoints = std::min((int)touched->maxHitPoints, std::max(int(touched->hitPoints) - self->contactDamage, 0));
+        self->kill();
+    }
 }

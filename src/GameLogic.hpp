@@ -15,8 +15,10 @@ enum class LevelID
 {
     Test = 0,
     DonMeowth,
+    MrPresident,
 
-    InitialLevel = Test
+    InitialLevel = Test,
+    FinalLevel = Test,
 };
 
 struct GlobalState
@@ -24,6 +26,7 @@ struct GlobalState
     // Global states
     bool isInitialized;
     bool isPaused;
+    bool isGameFinished;
     LevelID currentLevelID;
     float currentTime;
     ControllerState oldControllerState;
@@ -32,6 +35,7 @@ struct GlobalState
     // Assets.
     TileSet mainTileSet;
     TileSet hudTiles;
+    TileSet itemsSprites;
     TileSet robotSprites;
     TileSet catDogsSprites;
     MapFilePtr currentMap;
