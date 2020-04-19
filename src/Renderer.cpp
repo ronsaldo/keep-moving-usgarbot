@@ -267,11 +267,11 @@ public:
 
         if(global.isGameFinished)
         {
-            drawGlobalRainbowMessage("Congratulations!!!.");
+            drawGlobalRainbowMessage("Congratulations!!!.\n\nPress start\n to play again.");
         }
         else if(transientState && transientState->isGameOver)
         {
-            drawGlobalRainbowMessage("Game over");
+            drawGlobalRainbowMessage("Game over!\n\nPress any button\nto try again.");
         }
         else if(global.isPaused)
         {

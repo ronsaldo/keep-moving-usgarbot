@@ -126,7 +126,7 @@ public:
     void renderWith(Renderer &renderer);
     void hurtAt(float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse);
     void dropToFloor();
-    
+
     bool needsTicking();
     bool isSensor();
     bool isPlayer();
@@ -515,6 +515,16 @@ public:
     typedef EntityScoltedVIPBehavior Super;
 
     virtual void spawn(Entity *self) override;
+
+    virtual float maximumJumpHeight() override
+    {
+        return 8.0f;
+    }
+
+    virtual float maximumJumpHeightTime() override
+    {
+        return 0.6f;
+    }
 };
 
 class EntityMrPresidentBehavior : public EntityScoltedVIPBehavior

@@ -526,6 +526,9 @@ void EntityScoltedVIPBehavior::update(Entity *self, float delta)
         auto playerVipVector = activePlayer->position - self->position;
         auto playerVipDistance = playerVipVector.length();
 
+        if(global.isButtonPressed(ControllerButton::Y))
+            jump(self);
+
         self->lookDirection = playerVipVector.sign();
         if(self->lookDirection.x == 0 && self->lookDirection.y == 0)
             self->lookDirection = Vector2F(1.0f, 0.0f);
