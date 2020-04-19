@@ -63,6 +63,11 @@ struct MapTransientState
 
     // The entities that need periodical updating.
     FixedVector<Entity*, MaxNumberOfEntities> tickingEntitites;
+
+    // Some special entities.
+    Entity *activePlayer;
+    Entity *activeVIP;
+    bool isVipFollowingPlayer;
 };
 
 #endif //MAP_TRANSIENT_STATE_HPP

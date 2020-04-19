@@ -299,4 +299,6 @@ void EntityBehavior::renderWith(Entity *self, Renderer &renderer)
             color = 0xffffffff;
         renderer.fillWorldRectangle(self->boundingBox(), color);
     }
+
+    //renderer.fillWorldRectangle(self->debugSensor, 0xff202020);
 }

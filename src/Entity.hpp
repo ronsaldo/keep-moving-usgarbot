@@ -52,6 +52,8 @@ public:
     Entity *owner; // To not hurt oneself with a bullet
     float remainingLifeTime;
     float remainingInvincibilityTime;
+    float remainingBulletReloadTime;
+    float remainingActionTime;
     uint32_t hitPoints;
     int contactDamage;
 
@@ -62,6 +64,7 @@ public:
     Vector2F spriteOffset;
     bool spriteFlipX;
     bool spriteFlipY;
+    Box2F debugSensor;
 
     void applyImpulse(const Vector2F &impulse)
     {
@@ -121,6 +124,8 @@ public:
     void renderWith(Renderer &renderer);
     void hurtAt(float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse);
     bool needsTicking();
+    bool isPlayer();
+    bool isVIP();
 };
 
 class EntityBehavior
@@ -158,6 +163,16 @@ public:
         (void)hitPoint;
         (void)hitImpulse;
     }
+
+    virtual bool isPlayer()
+    {
+        return false;
+    }
+
+    virtual bool isVIP()
+    {
+        return false;
+    }
 };
 
 EntityBehavior *entityBehaviorTypeIntoClass(EntityBehaviorType type);
@@ -180,6 +195,16 @@ inline void Entity::renderWith(Renderer &renderer)
 inline void Entity::hurtAt(float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse)
 {
     entityBehaviorTypeIntoClass(type)->hurtAt(this, damage, hitPoint, hitImpulse);
+}
+
+inline bool Entity::isPlayer()
+{
+    return entityBehaviorTypeIntoClass(type)->isPlayer();
+}
+
+inline bool Entity::isVIP()
+{
+    return entityBehaviorTypeIntoClass(type)->isVIP();
 }
 
 class EntityNullBehavior : public EntityBehavior
@@ -247,6 +272,7 @@ class EntityCharacterBehavior : public EntityKinematicCollidingBehavior
 public:
     typedef EntityKinematicCollidingBehavior Super;
 
+    virtual void die(Entity *self);
     virtual void spawn(Entity *self) override;
     virtual void update(Entity *self, float delta) override;
     virtual void hurtAt(Entity *self, float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse) override;
@@ -310,7 +336,21 @@ public:
         return 0.150f;
     }
 
+    virtual float forwardTestGap(Entity *self)
+    {
+        (void)self;
+        return 0.5f;
+    }
+
+    virtual float currentBulletReloadTime(Entity *self)
+    {
+        (void)self;
+        return 0.1f;
+    }
+
     bool isOnFloor(Entity *self);
+    bool hasFloorForward(Entity *self);
+    bool hasWallForward(Entity *self);
     bool canJump(Entity *self);
     void jump(Entity *self);
 
@@ -334,12 +374,112 @@ public:
 
     virtual void spawn(Entity *self) override;
     virtual void update(Entity *self, float delta) override;
+
+    virtual bool isPlayer() override
+    {
+        return true;
+    }
 };
 
 class EntityEnemyBehavior : public EntityCharacterBehavior
 {
 public:
     typedef EntityCharacterBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+    virtual float maximumTargetSightDistance(Entity *self)
+    {
+        return 13.0f;
+    }
+
+    bool hasTargetOnSight(Entity *self, Entity *testTarget);
+    bool hasSomeTargetOnSight(Entity *self);
+};
+
+class EntityEnemySentryBehavior : public EntityEnemyBehavior
+{
+public:
+    typedef EntityEnemyBehavior Super;
+
+    virtual float directionLookingTime()
+    {
+        return 1.0f;
+    }
+
+    virtual void spawn(Entity *self) override;
+    virtual void update(Entity *self, float delta) override;
+};
+
+class EntityEnemyTurretBehavior : public EntityEnemyBehavior
+{
+public:
+    typedef EntityEnemyBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+    virtual void update(Entity *self, float delta) override;
+};
+
+class EntityEnemyPatrolBehavior : public EntityEnemyBehavior
+{
+public:
+    typedef EntityEnemyBehavior Super;
+
+    virtual Vector2F myTerminalVelocity() override
+    {
+        return 3.5f;
+    }
+
+    virtual void spawn(Entity *self) override;
+    virtual void update(Entity *self, float delta) override;
+};
+
+class EntityEnemyPatrolDogBehavior : public EntityEnemyPatrolBehavior
+{
+public:
+    typedef EntityEnemyPatrolBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+};
+
+class EntityEnemySentryDogBehavior : public EntityEnemySentryBehavior
+{
+public:
+    typedef EntityEnemySentryBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+};
+
+class EntityScoltedVIPBehavior : public EntityCharacterBehavior
+{
+public:
+    typedef EntityCharacterBehavior Super;
+
+    virtual Vector2F myTerminalVelocity() override
+    {
+        return 5.0f;
+    }
+
+    virtual void spawn(Entity *self) override;
+    virtual void update(Entity *self, float delta) override;
+
+    virtual bool isVIP() override
+    {
+        return true;
+    }
+};
+
+class EntityDonMeowthBehavior : public EntityScoltedVIPBehavior
+{
+public:
+    typedef EntityScoltedVIPBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+};
+
+class EntityMrPresidentBehavior : public EntityScoltedVIPBehavior
+{
+public:
+    typedef EntityScoltedVIPBehavior Super;
 
     virtual void spawn(Entity *self) override;
 };

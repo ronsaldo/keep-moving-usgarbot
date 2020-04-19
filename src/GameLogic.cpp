@@ -172,6 +172,11 @@ static void updateTransientState(float delta)
     transientState->collisionEntities.removeAllThat(areDead);
     transientState->tickingEntitites.removeAllThat(areDead);
 
+    if(transientState->activePlayer && transientState->activePlayer->isDead())
+        transientState->activePlayer = nullptr;
+    if(transientState->activeVIP && transientState->activeVIP->isDead())
+        transientState->activeVIP = nullptr;
+
     // Move the zombies into the free list.
     for(auto entity : transientState->zombieEntities)
         transientState->freeEntities.push_back(entity);
