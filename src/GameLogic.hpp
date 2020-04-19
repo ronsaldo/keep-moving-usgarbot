@@ -23,6 +23,7 @@ struct GlobalState
 
     // Assets.
     TileSet mainTileSet;
+    TileSet robotSprites;
     MapFilePtr currentMap;
     SoundSamplePtr noiseSample;
 

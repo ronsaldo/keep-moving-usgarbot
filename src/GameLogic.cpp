@@ -132,6 +132,7 @@ static void initializeGlobalState()
 
     // This is the place for loading the required game assets.
     global.mainTileSet.loadFrom("tileset.png");
+    global.robotSprites.loadFrom("robotSprites.png", 48, 64);
     loadMapFile("test.map");
 
     global.isInitialized = true;
@@ -202,7 +203,6 @@ public:
     virtual void update(float delta, const ControllerState &controllerState) override;
     virtual void render(const Framebuffer &framebuffer) override;
     virtual void setHostInterface(HostInterface *theHost) override;
-
 };
 
 void GameInterfaceImpl::setPersistentMemory(MemoryZone *zone)

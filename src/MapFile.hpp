@@ -34,11 +34,22 @@ struct MapFileHeader
     }
 };
 
+namespace MapFileLayerFlags
+{
+    enum Flags
+    {
+        None,
+        Solid=1,
+    };
+};
+
 struct MapFileLayer
 {
+
+
     MapFileLayerType type;
     uint8_t reserved;
-    uint16_t reserved2;
+    uint16_t flags;
 
     SmallFixedString<32> name;
 };
@@ -47,6 +58,11 @@ struct MapFileTileLayer : public MapFileLayer
 {
     Vector2I extent;
     uint16_t tiles[]; // extent x * extent y tiles.
+
+    bool isSolid() const
+    {
+        return (flags & MapFileLayerFlags::Solid) != 0;
+    }
 
     Box2I tileGridBounds() const
     {

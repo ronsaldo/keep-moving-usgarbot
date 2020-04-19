@@ -41,6 +41,9 @@ bool isBoxCollidingWithWorld(const Box2F &box)
             continue;
 
         auto solidLayer = reinterpret_cast<MapSolidLayerState*> (layer);
+        if(!solidLayer->mapTileLayer->isSolid())
+            continue;
+
         if(isWorldBoxCollidingWithMapTileLayer(box, solidLayer->mapTileLayer))
             return true;
     }
@@ -124,6 +127,9 @@ void sweepCollisionBoxAlongRayWithWorld(const Vector2F &boxHalfExtent, const Ray
             continue;
 
         auto solidLayer = reinterpret_cast<MapSolidLayerState*> (layer);
+        if(!solidLayer->mapTileLayer->isSolid())
+            continue;
+
         sweepCollisionBoxAlongRayWithWorldWithMapTileLayer(boxHalfExtent, ray, solidLayer->mapTileLayer, outResult);
     }
 }

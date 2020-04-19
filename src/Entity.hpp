@@ -3,6 +3,7 @@
 
 #include "Box2.hpp"
 #include "FixedString.hpp"
+#include "TileSet.hpp"
 #include <stdint.h>
 
 enum EntityBehaviorType : uint8_t {
@@ -56,6 +57,11 @@ public:
 
     // Visual attributes
     uint32_t color;
+    TileSet *spriteSheet;
+    Vector2I spriteIndex;
+    Vector2F spriteOffset;
+    bool spriteFlipX;
+    bool spriteFlipY;
 
     void applyImpulse(const Vector2F &impulse)
     {

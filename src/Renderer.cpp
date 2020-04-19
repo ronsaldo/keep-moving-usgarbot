@@ -19,6 +19,7 @@ public:
         halfFramebufferUnitOffset = halfFramebufferOffset*Vector2F(UnitsPerPixel, -UnitsPerPixel);
 
         {
+            // Break time.
             auto fbBounds = f.bounds();
             viewVolumeInUnits = Box2F::withCenterAndHalfExtent(fbBounds.center().asVector2F()*Vector2F(UnitsPerPixel, -UnitsPerPixel), fbBounds.halfExtent().asVector2F()*UnitsPerPixel);
         }
@@ -49,6 +50,11 @@ public:
 
             destRow += framebuffer.pitch;
         }
+    }
+
+    Vector2F worldToViewPixels(const Vector2F &p) const
+    {
+        return pointFromWorldIntoPixelSpace(p + cameraTranslation);
     }
 
     Box2F worldToViewPixels(const Box2F &b) const
@@ -141,6 +147,11 @@ public:
         blitImage(tileSet.image, Box2I::withMinAndExtent(tileSet.tileExtent*tileGridIndex, tileSet.tileExtent), destination, flipX, flipY);
     }
 
+    void blitTextTile(const TileSet &tileSet, const Vector2I &tileGridIndex, const Vector2I &destination, uint32_t color, bool flipX = false, bool flipY = false)
+    {
+        blitTextImage(tileSet.image, Box2I::withMinAndExtent(tileSet.tileExtent*tileGridIndex, tileSet.tileExtent), destination, color, flipX, flipY);
+    }
+
     void blitImage(const ImagePtr &image, const Box2I &sourceRectangle, const Vector2I &destination, bool flipX = false, bool flipY = false)
     {
         auto extent = sourceRectangle.extent();
@@ -155,12 +166,12 @@ public:
         auto destRow = framebuffer.pixels + framebuffer.pitch*clippedDest.min.y + clippedDest.min.x*4;
         auto sourceRow = image->data.get();
         if(flipX)
-            sourceRow += (extent.x - clippedSource.min.x - 1)*4;
+            sourceRow += (sourceRectangle.min.x + (extent.x - copyOffset.x - 1))*4;
         else
             sourceRow += clippedSource.min.x*4;
 
         if(flipY)
-            sourceRow += image->pitch*(extent.y - clippedSource.min.y - 1);
+            sourceRow += image->pitch*(sourceRectangle.min.y + (extent.y - copyOffset.y - 1));
         else
             sourceRow += image->pitch*clippedSource.min.y;
 
@@ -177,6 +188,51 @@ public:
                 auto alpha = (sourcePixel >> 24) & 0xff;
                 if(alpha > 0x80)
                     *dest = sourcePixel;
+                ++dest;
+                source += sourceRowIncrement;
+            }
+
+            destRow += framebuffer.pitch;
+            sourceRow += sourcePitch;
+        }
+    }
+
+    void blitTextImage(const ImagePtr &image, const Box2I &sourceRectangle, const Vector2I &destination, uint32_t textColor, bool flipX = false, bool flipY = false)
+    {
+        auto extent = sourceRectangle.extent();
+        auto destRectangle = Box2I::withMinAndExtent(destination, sourceRectangle.extent());
+        auto clippedDest = destRectangle.intersectionWithBox(framebuffer.bounds());
+        if(clippedDest.isEmpty())
+            return;
+
+        auto copyOffset = clippedDest.min - destination;
+        auto clippedSource = Box2I(sourceRectangle.min + copyOffset, sourceRectangle.max);
+
+        auto destRow = framebuffer.pixels + framebuffer.pitch*clippedDest.min.y + clippedDest.min.x*4;
+        auto sourceRow = image->data.get();
+        if(flipX)
+            sourceRow += (sourceRectangle.min.x + (extent.x - copyOffset.x - 1))*4;
+        else
+            sourceRow += clippedSource.min.x*4;
+
+        if(flipY)
+            sourceRow += image->pitch*(sourceRectangle.min.y + (extent.y - copyOffset.y - 1));
+        else
+            sourceRow += image->pitch*clippedSource.min.y;
+
+        auto sourceRowIncrement = flipX ? -1 : 1;
+        auto sourcePitch = flipY ? int(-image->pitch) : int(image->pitch);
+
+        for(int32_t y = clippedDest.min.y; y < clippedDest.max.y; ++y)
+        {
+            auto dest = reinterpret_cast<uint32_t*> (destRow);
+            auto source = reinterpret_cast<uint32_t*> (sourceRow);
+            for(int32_t x = clippedDest.min.x; x < clippedDest.max.x; ++x)
+            {
+                auto sourcePixel = *source;
+                auto alpha = (sourcePixel >> 24) & 0xff;
+                if(alpha > 0x80)
+                    *dest = textColor;
                 ++dest;
                 source += sourceRowIncrement;
             }
@@ -226,8 +282,21 @@ void render(const Framebuffer &framebuffer)
 
 void EntityBehavior::renderWith(Entity *self, Renderer &renderer)
 {
-    auto color = self->color;
-    if(self->isInvincible())
-        color = 0xffffffff;
-    renderer.fillWorldRectangle(self->boundingBox(), color);
+    if(self->spriteSheet)
+    {
+        auto spriteOffset = self->spriteSheet->tileExtent.asVector2F()*0.5f;
+        auto spriteDestination = (renderer.worldToViewPixels(self->position + self->spriteOffset) - spriteOffset).asVector2I();
+
+        if(self->isInvincible())
+            renderer.blitTextTile(*self->spriteSheet, self->spriteIndex, spriteDestination, 0xffffffff, self->spriteFlipX, self->spriteFlipY);
+        else
+            renderer.blitTile(*self->spriteSheet, self->spriteIndex, spriteDestination, self->spriteFlipX, self->spriteFlipY);
+    }
+    else
+    {
+        auto color = self->color;
+        if(self->isInvincible())
+            color = 0xffffffff;
+        renderer.fillWorldRectangle(self->boundingBox(), color);
+    }
 }

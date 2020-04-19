@@ -233,7 +233,11 @@ void EntityPlayerBehavior::spawn(Entity *self)
 {
     Super::spawn(self);
 
-    self->setExtent(Vector2F(0.7f, 1.7f));
+    //self->setExtent(Vector2F(0.7f, 1.7f));
+    self->setExtent(Vector2F(1.25f, 1.8f));
+    self->spriteSheet = &global.robotSprites;
+    self->spriteIndex = Vector2I(0, 0);
+    self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel);
 }
 
 void EntityPlayerBehavior::update(Entity *self, float delta)
@@ -241,6 +245,22 @@ void EntityPlayerBehavior::update(Entity *self, float delta)
     self->updateLookDirectionWithNormalizedVector(Vector2F(global.controllerState.leftXAxis, global.controllerState.leftYAxis));
 
     self->walkDirection = Vector2F(global.controllerState.leftXAxis, 0.0f);
+    if(self->lookDirection.y == 0)
+    {
+        self->spriteIndex = Vector2I(0, 0);
+        self->spriteFlipX = self->lookDirection.x < 0;
+    }
+    else if(self->lookDirection.y > 0)
+    {
+        self->spriteIndex = Vector2I(1, 0);
+        self->spriteFlipX = self->lookDirection.x < 0;
+    }
+    else if(self->lookDirection.y < 0)
+    {
+        self->spriteIndex = Vector2I(2, 0);
+        self->spriteFlipX = self->lookDirection.x < 0;
+    }
+
     if(global.isButtonPressed(ControllerButton::A))
         jump(self);
     if(global.isButtonPressed(ControllerButton::X))
@@ -263,4 +283,10 @@ void EntityEnemyBehavior::spawn(Entity *self)
     self->setExtent(Vector2F(0.7f, 1.7f));
     self->color = 0xffcccc00;
     self->hitPoints = 20;
+
+    self->setExtent(Vector2F(1.25f, 1.8f));
+    self->spriteSheet = &global.robotSprites;
+    self->spriteIndex = Vector2I(0, 0);
+    self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel);
+
 }
