@@ -95,17 +95,18 @@ public:
     void updateLookDirectionWithNormalizedVector(const Vector2F &v)
     {
         auto lastDirection = lookDirection;
+        const auto Threshold = 0.3f;
 
-        if(v.x >= 0.5f)
+        if(v.x >= Threshold)
             lookDirection.x = 1.0f;
-        else if(v.x <= -0.5f)
+        else if(v.x <= -Threshold)
             lookDirection.x = -1.0f;
         else
             lookDirection.x = 0;
 
-        if(v.y >= 0.5f)
+        if(v.y >= Threshold)
             lookDirection.y = 1.0f;
-        else if(v.y <= -0.5f)
+        else if(v.y <= -Threshold)
             lookDirection.y = -1.0f;
         else
             lookDirection.y = 0;

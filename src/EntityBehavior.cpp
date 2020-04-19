@@ -289,6 +289,7 @@ void EntityPlayerBehavior::spawn(Entity *self)
 void EntityPlayerBehavior::update(Entity *self, float delta)
 {
     self->updateLookDirectionWithNormalizedVector(Vector2F(global.controllerState.leftXAxis, global.controllerState.leftYAxis));
+    self->updateLookDirectionWithNormalizedVector(Vector2F(global.controllerState.rightXAxis, global.controllerState.rightYAxis));
 
     self->walkDirection = Vector2F(global.controllerState.leftXAxis, 0.0f);
     if(self->lookDirection.y == 0)
@@ -309,12 +310,12 @@ void EntityPlayerBehavior::update(Entity *self, float delta)
 
     if(global.isButtonPressed(ControllerButton::A))
         jump(self);
-    if(global.isButtonPressed(ControllerButton::X))
+    if(global.isButtonPressed(ControllerButton::X) || global.isButtonPressed(ControllerButton::RightTrigger))
         shoot(self);
     if(global.isButtonPressed(ControllerButton::B))
         global.mapTransientState->isVipFollowingPlayer = !global.mapTransientState->isVipFollowingPlayer;
 
-    if(global.isButtonPressed(ControllerButton::RightShoulder))
+    if(global.isButtonPressed(ControllerButton::LeftTrigger))
         dash(self);
 
 
@@ -503,7 +504,8 @@ void EntityScoltedVIPBehavior::update(Entity *self, float delta)
         }
         else
         {
-            self->walkDirection = 0.0f;
+            if(isOnFloor(self))
+                self->walkDirection = 0.0f;
         }
     }
     else

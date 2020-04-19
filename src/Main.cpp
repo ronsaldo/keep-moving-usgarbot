@@ -425,7 +425,7 @@ static void pollJoysticks()
     gamepadControllerState.leftXAxis = mapAxisValue(SDL_GameControllerGetAxis(gameController, SDL_CONTROLLER_AXIS_LEFTX));
     gamepadControllerState.leftYAxis = -mapAxisValue(SDL_GameControllerGetAxis(gameController, SDL_CONTROLLER_AXIS_LEFTY));
     gamepadControllerState.rightXAxis = mapAxisValue(SDL_GameControllerGetAxis(gameController, SDL_CONTROLLER_AXIS_RIGHTX));
-    gamepadControllerState.rightYAxis = mapAxisValue(SDL_GameControllerGetAxis(gameController, SDL_CONTROLLER_AXIS_RIGHTY));
+    gamepadControllerState.rightYAxis = -mapAxisValue(SDL_GameControllerGetAxis(gameController, SDL_CONTROLLER_AXIS_RIGHTY));
 
     if(gamepadControllerState.leftXAxis == 0)
         gamepadControllerState.leftXAxis = mapDigitalAxis(gameController, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
