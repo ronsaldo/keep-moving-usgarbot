@@ -91,7 +91,7 @@ static void loadMapFileTileLayer(const MapFileTileLayer &layer)
     global.mapTransientState->layers.push_back(solidLayer);
 }
 
-static void loadMapFile(const char *filename)
+static void loadMapFile(const char *filename, const char *messageTitle)
 {
     // Do the actual map loading.
     global.currentMap.reset(hostInterface->loadMapFile(filename));
@@ -123,6 +123,24 @@ static void loadMapFile(const char *filename)
         global.mapTransientState->layers.push_back(projectileLayer);
         global.mapTransientState->projectileEntityLayer = projectileLayer;
     }
+
+    // Set the title message.
+    global.mapTransientState->currentMessage = std::string(messageTitle);
+    global.mapTransientState->currentMessageRemainingTime = 3.0f;
+}
+
+static void startNewMap()
+{
+    switch(global.currentLevelID)
+    {
+    case LevelID::DonMeowth:
+        loadMapFile("donMeowth.map", "Escort Don Meoth!!!");
+        break;
+    case LevelID::Test:
+    default:
+        loadMapFile("test.map", "Escort the ^!!!");
+        break;
+    }
 }
 
 static void initializeGlobalState()
@@ -132,9 +150,11 @@ static void initializeGlobalState()
 
     // This is the place for loading the required game assets.
     global.mainTileSet.loadFrom("tileset.png");
+    global.hudTiles.loadFrom("hud.png");
     global.robotSprites.loadFrom("robotSprites.png", 48, 64);
     global.catDogsSprites.loadFrom("catDogsSprites.png", 64, 32);
-    loadMapFile("test.map");
+    global.currentLevelID = LevelID::InitialLevel;
+    startNewMap();
 
     global.isInitialized = true;
 }
@@ -153,6 +173,27 @@ static void updateTransientState(float delta)
     auto transientState = global.mapTransientState;
     if(!transientState)
         return;
+
+        // Pause button
+    if(!transientState->isGameOver && global.isButtonPressed(ControllerButton::Start))
+        global.isPaused = !global.isPaused;
+
+    if(transientState->isGameOver &&
+        transientState->timeInGameOver > 0.5f &&
+        global.isButtonPressed(ControllerButton::Start | ControllerButton::A | ControllerButton::X))
+    {
+        startNewMap();
+        if(!transientState)
+            return;
+    }
+
+
+    if(global.isPaused)
+        return;
+
+    // The time of the active message
+    if(transientState->currentMessageRemainingTime > 0.0f)
+        transientState->currentMessageRemainingTime -= delta;
 
     // Update the ticking entities.
     for(auto entity : transientState->tickingEntitites)
@@ -178,6 +219,10 @@ static void updateTransientState(float delta)
     if(transientState->activeVIP && transientState->activeVIP->isDead())
         transientState->activeVIP = nullptr;
 
+    transientState->isGameOver = !transientState->activePlayer || !transientState->activeVIP;
+    if(transientState->isGameOver)
+        transientState->timeInGameOver += delta;
+
     // Move the zombies into the free list.
     for(auto entity : transientState->zombieEntities)
         transientState->freeEntities.push_back(entity);
@@ -193,10 +238,6 @@ void update(float delta, const ControllerState &controllerState)
     updateTransientState(delta);
 
     global.currentTime += delta;
-
-    // Pause button
-    if(global.isButtonPressed(ControllerButton::Start))
-        global.isPaused = !global.isPaused;
 }
 
 void render(const Framebuffer &framebuffer);

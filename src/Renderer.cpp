@@ -8,6 +8,23 @@
 #include <stdlib.h>
 #include <math.h>
 
+static std::string CharacterSet = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.,?!@0123456789^[]";
+static uint32_t RainbowColorTable[] {
+    0xff0000cc,
+    0xff0040cc,
+    0xff00cc00,
+
+    0xffcc0000,
+    0xff40cc00,
+    0xff00cccc,
+
+    0xffcccc00,
+    0xffcc0040,
+    0xffcc00cc,
+
+};
+static const int RainbowColorTableSize = sizeof(RainbowColorTable)/sizeof(RainbowColorTable[0]);
+
 class Renderer
 {
 public:
@@ -103,10 +120,138 @@ public:
             entity->renderWith(*this);
     }
 
+    void drawCharacter(char character, const Vector2I &destPosition, uint32_t color)
+    {
+        if(character <= ' ')
+            character = ' ';
+        if('a' <= character && character <= 'z')
+            character += 'A' - 'a';
+
+        auto tileIndex = CharacterSet.find(character);
+        if(tileIndex >= CharacterSet.size())
+            return;
+
+        Vector2I tileGridIndex;
+        auto &tileSet = global.hudTiles;
+        tileSet.computeTileColumnAndRowFromIndex(tileIndex, &tileGridIndex);
+
+        auto tilePosition = tileGridIndex*tileSet.tileExtent;
+        blitTextImage(tileSet.image, Box2I(tilePosition, tilePosition + tileSet.tileExtent), destPosition, color);
+    }
+
+    void drawString(const std::string &string, const Vector2I &destPosition, uint32_t color)
+    {
+        auto currentDestPosition = destPosition;
+        for(auto c : string)
+        {
+            drawCharacter(c, currentDestPosition, color);
+            currentDestPosition = currentDestPosition + Vector2I(global.hudTiles.tileExtent.x, 0);
+        }
+    }
+
+    void drawRainbowString(const std::string &string, const Vector2I &destPosition, float wavePhase, size_t rainbowPhase = 0)
+    {
+        auto currentDestPosition = destPosition;
+
+        for(size_t i = 0; i < string.size(); ++i)
+        {
+            auto waveOffset = (Vector2F(0.0f, sin(currentDestPosition.x*3.0f + wavePhase))*global.hudTiles.tileExtent.y*0.3f).floor().asVector2I();
+
+            drawCharacter(string[i], waveOffset + currentDestPosition, RainbowColorTable[(i + rainbowPhase) % RainbowColorTableSize]);
+            currentDestPosition = currentDestPosition + Vector2I(global.hudTiles.tileExtent.x, 0);
+        }
+    }
+
+    uint32_t colorForHP(uint32_t hp)
+    {
+        if (hp >= 70)
+            return 0xff00ff00;
+
+        if (hp >= 30)
+            return 0xff00ffff;
+        if (hp > 0)
+            return 0xff0000ff;
+
+        return 0xff000000;
+    }
+
+    void renderHUD()
+    {
+        auto tileExtent = global.hudTiles.tileExtent;
+
+        auto transientState = global.mapTransientState;
+        if(!transientState)
+            return;
+
+        auto playerHP = transientState->activePlayer ? transientState->activePlayer->hitPoints : 0u;
+        auto vipHP = transientState->activeVIP ? transientState->activeVIP->hitPoints : 0u;
+        auto vipFollowing = transientState->isVipFollowingPlayer;
+
+        auto hudOffset = Vector2I(20);
+        {
+            char buffer[64];
+            sprintf(buffer, "@%03d", playerHP);
+            drawString(buffer, hudOffset, colorForHP(playerHP));
+        }
+
+        {
+            char buffer[64];
+            sprintf(buffer, "^%03d", vipHP);
+            drawString(buffer, hudOffset + Vector2I(0, tileExtent.y), colorForHP(vipHP));
+        }
+
+        if(vipHP > 0)
+        {
+            drawCharacter(vipFollowing ? ']' : '[', hudOffset + Vector2I(4*tileExtent.x, tileExtent.y), vipFollowing ? 0xff00cc00 : 0xff0000cc);
+        }
+
+        if(transientState->isGameOver)
+            drawGlobalRainbowMessage("Game over");
+    }
+
+    Vector2I positionForCenteredStringOfSize(uint32_t size)
+    {
+        auto textExtent = global.hudTiles.tileExtent.asVector2F()*Vector2F(size, 1);
+        auto remainingExtent = framebuffer.extent().asVector2F() - textExtent;
+
+        return (remainingExtent*0.5f).asVector2I();
+    }
+
+    void renderActiveMessage()
+    {
+        if(global.isPaused)
+        {
+            drawGlobalRainbowMessage("Paused");
+            return;
+        }
+
+        auto transientState = global.mapTransientState;
+        if(!transientState)
+            return;
+
+        if(transientState->currentMessageRemainingTime > 0.0f)
+        {
+            float wavePhase = -transientState->currentMessageRemainingTime*3.0f;
+            size_t rainbowPhase = -transientState->currentMessageRemainingTime*3.0f;
+            drawRainbowString(transientState->currentMessage, positionForCenteredStringOfSize(transientState->currentMessage.size()),
+                wavePhase, rainbowPhase);
+        }
+    }
+
+    void drawGlobalRainbowMessage(const std::string &message)
+    {
+        float wavePhase = global.currentTime*3.0;
+        size_t rainbowPhase = global.currentTime*3.0f;
+        drawRainbowString(message, positionForCenteredStringOfSize(message.size()),
+            wavePhase, rainbowPhase);
+    }
+
     void render()
     {
         renderBackground();
         renderCurrentMap();
+        renderHUD();
+        renderActiveMessage();
     }
 
     void renderTileLayer(const MapFileTileLayer &layer)

@@ -15,7 +15,7 @@ static EntityBehavior *entityBehaviorTypeIntoClassTable[] = {
 
 EntityBehavior *entityBehaviorTypeIntoClass(EntityBehaviorType type)
 {
-    return entityBehaviorTypeIntoClassTable[type];
+    return entityBehaviorTypeIntoClassTable[(int)type];
 }
 
 void Entity::spawn()
@@ -150,7 +150,7 @@ void EntityCharacterBehavior::die(Entity *self)
 
 void EntityCharacterBehavior::update(Entity *self, float delta)
 {
-    if(self->hitPoints <= 0)
+    if(self->hitPoints == 0)
     {
         die(self);
         return;
@@ -288,6 +288,14 @@ void EntityPlayerBehavior::spawn(Entity *self)
 
 void EntityPlayerBehavior::update(Entity *self, float delta)
 {
+    if(global.mapTransientState->isGameOver)
+    {
+        Super::update(self, delta);
+
+        global.cameraPosition = self->position;
+        return;
+    }
+
     self->updateLookDirectionWithNormalizedVector(Vector2F(global.controllerState.leftXAxis, global.controllerState.leftYAxis));
     self->updateLookDirectionWithNormalizedVector(Vector2F(global.controllerState.rightXAxis, global.controllerState.rightYAxis));
 

@@ -11,18 +11,27 @@
 
 struct MapTransientState;
 
+enum class LevelID
+{
+    Test = 0,
+    DonMeowth,
+
+    InitialLevel = Test
+};
+
 struct GlobalState
 {
     // Global states
     bool isInitialized;
     bool isPaused;
-    bool isGameCompleted;
+    LevelID currentLevelID;
     float currentTime;
     ControllerState oldControllerState;
     ControllerState controllerState;
 
     // Assets.
     TileSet mainTileSet;
+    TileSet hudTiles;
     TileSet robotSprites;
     TileSet catDogsSprites;
     MapFilePtr currentMap;

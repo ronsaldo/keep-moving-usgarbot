@@ -11,7 +11,7 @@ enum {
     MaxNumberOfEntitiesPerLayer = 512,
 };
 
-enum MapLayerType : uint8_t {
+enum class MapLayerType : uint8_t {
     Solid,
     Entities
 };
@@ -68,6 +68,14 @@ struct MapTransientState
     Entity *activePlayer;
     Entity *activeVIP;
     bool isVipFollowingPlayer;
+
+    // An active message
+    SmallFixedString<32> currentMessage;
+    float currentMessageRemainingTime;
+
+    // Is this a game over?
+    bool isGameOver;
+    float timeInGameOver;
 };
 
 #endif //MAP_TRANSIENT_STATE_HPP

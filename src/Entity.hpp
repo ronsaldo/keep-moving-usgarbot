@@ -6,7 +6,7 @@
 #include "TileSet.hpp"
 #include <stdint.h>
 
-enum EntityBehaviorType : uint8_t {
+enum class EntityBehaviorType : uint8_t {
 #   define ENTITY_BEHAVIOR_TYPE(typeName) typeName,
 #   include "EntityBehaviorTypes.inc"
 #   undef ENTITY_BEHAVIOR_TYPE
@@ -390,6 +390,7 @@ public:
     virtual void spawn(Entity *self) override;
     virtual float maximumTargetSightDistance(Entity *self)
     {
+        (void)self;
         return 13.0f;
     }
 
@@ -440,6 +441,18 @@ public:
     typedef EntityEnemyPatrolBehavior Super;
 
     virtual void spawn(Entity *self) override;
+
+    virtual float currentBulletReloadTime(Entity *self) override
+    {
+        (void)self;
+        return 0.7f;
+    }
+
+    virtual int currentAmmunitionPower(Entity *self) override
+    {
+        (void)self;
+        return 1;
+    }
 };
 
 class EntityEnemySentryDogBehavior : public EntityEnemySentryBehavior
@@ -448,6 +461,19 @@ public:
     typedef EntityEnemySentryBehavior Super;
 
     virtual void spawn(Entity *self) override;
+
+    virtual float currentBulletReloadTime(Entity *self) override
+    {
+        (void)self;
+        return 0.45f;
+    }
+
+    virtual int currentAmmunitionPower(Entity *self) override
+    {
+        (void)self;
+        return 3;
+    }
+
 };
 
 class EntityScoltedVIPBehavior : public EntityCharacterBehavior

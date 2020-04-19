@@ -12,7 +12,7 @@ private:
         DataSize = N - 1
     };
 
-    uint8_t size;
+    uint8_t size_;
     char data[DataSize];
 
 public:
@@ -22,18 +22,23 @@ public:
 
     SmallFixedString(const std::string &s)
     {
-        size = std::min(size_t(DataSize), s.size());
-        memcpy(data, s.data(), size);
+        size_ = std::min(size_t(DataSize), s.size());
+        memcpy(data, s.data(), size_);
     }
 
     operator std::string() const
     {
-        return std::string(data, data + size);
+        return std::string(data, data + size_);
+    }
+
+    size_t size() const
+    {
+        return size_;
     }
 
     bool operator ==(const SelfType &o) const
     {
-        return size == o.size && memcmp(data, o.data, size) == 0;
+        return size_ == o.size_ && memcmp(data, o.data, size_) == 0;
     }
 
     bool operator !=(const SelfType &o) const
