@@ -503,6 +503,18 @@ void render(const Framebuffer &framebuffer)
 
 void EntityBehavior::renderWith(Entity *self, Renderer &renderer)
 {
+    if(canUseAPistol())
+    {
+        auto weaponDirection = (self->halfExtent + 0.15f)*self->lookDirection.normalized();
+        auto spriteOffset = global.itemsSprites.tileExtent.asVector2F()*0.5f;
+        auto weaponDisplayPosition = (renderer.worldToViewPixels(self->position+ self->spriteOffset + weaponDirection) - spriteOffset).asVector2I();
+
+        if(self->lookDirection.y != 0)
+            renderer.blitTile(global.itemsSprites, Vector2I(2, 0), weaponDisplayPosition, false, self->lookDirection.y < 0);
+        else
+            renderer.blitTile(global.itemsSprites, Vector2I(1, 0), weaponDisplayPosition, self->lookDirection.x < 0);
+    }
+
     if(self->spriteSheet)
     {
         auto spriteOffset = self->spriteSheet->tileExtent.asVector2F()*0.5f;

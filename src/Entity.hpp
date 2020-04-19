@@ -183,6 +183,11 @@ public:
     {
         return false;
     }
+
+    virtual bool canUseAPistol()
+    {
+        return false;
+    }
 };
 
 EntityBehavior *entityBehaviorTypeIntoClass(EntityBehaviorType type);
@@ -390,6 +395,11 @@ public:
     virtual void spawn(Entity *self) override;
     virtual void update(Entity *self, float delta) override;
 
+    virtual bool canUseAPistol() override
+    {
+        return true;
+    }
+
     virtual bool isPlayer() override
     {
         return true;
@@ -406,6 +416,11 @@ public:
     {
         (void)self;
         return 13.0f;
+    }
+
+    virtual bool canUseAPistol() override
+    {
+        return true;
     }
 
     bool hasTargetOnSight(Entity *self, Entity *testTarget);

@@ -253,9 +253,9 @@ void EntityCharacterBehavior::shoot(Entity *self, float bulletSpeed, float bulle
     self->remainingBulletReloadTime = currentBulletReloadTime(self);
 
     auto bullet = instatiateEntityInLayer(global.mapTransientState->projectileEntityLayer, EntityBehaviorType::Bullet);
-    bullet->position = self->position;
-    bullet->velocity = self->velocity + self->lookDirection*bulletSpeed;
     bullet->halfExtent = 0.2f;
+    bullet->position = self->position + self->lookDirection*(self->halfExtent + bullet->halfExtent*1.5f);
+    bullet->velocity = self->velocity + self->lookDirection*bulletSpeed;
     bullet->owner = self;
     bullet->remainingLifeTime = bulletLifeTime;
     bullet->contactDamage = currentAmmunitionPower;
