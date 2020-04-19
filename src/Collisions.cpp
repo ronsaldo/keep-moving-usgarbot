@@ -50,9 +50,32 @@ bool isBoxCollidingWithWorld(const Box2F &box)
     return false;
 }
 
+bool isBoxCollidingWithSolidEntity(const Box2F &box, const std::unordered_set<Entity*> &exclusionSet)
+{
+    auto mapState = global.mapTransientState;
+    if(!mapState)
+        return false;
+
+    for(auto entity : mapState->collisionEntities)
+    {
+        if(exclusionSet.find(entity) != exclusionSet.end())
+            continue;
+
+        if(entity->boundingBox().intersectsWithBox(box))
+            return true;
+    }
+
+    return false;
+}
+
+bool isBoxCollidingWithSolid(const Box2F &box, const std::unordered_set<Entity*> &exclusionSet)
+{
+    return isBoxCollidingWithWorld(box) || isBoxCollidingWithSolidEntity(box, exclusionSet);
+}
+
 bool isBoxCollidingWithSolid(const Box2F &box)
 {
-    return isBoxCollidingWithWorld(box);
+    return isBoxCollidingWithSolid(box, std::unordered_set<Entity*> ());
 }
 
 void sweepCollisionBoxAlongRayWithWorldWithMapTileLayer(const Vector2F &boxHalfExtent, const Ray2F &ray, const MapFileTileLayer *tileLayer, CollisionSweepTestResult &outResult)

@@ -3,6 +3,7 @@
 
 #include "Box2.hpp"
 #include "FixedVector.hpp"
+#include <unordered_set>
 #define CollisionNotStuckEpsilon 0.0001f
 #define CollisionSweepStopEpsilon 0.0001f
 
@@ -24,6 +25,7 @@ struct CollisionSweepTestResult
 // Collision testing.
 bool isBoxCollidingWithWorld(const Box2F &box);
 bool isBoxCollidingWithSolid(const Box2F &box);
+bool isBoxCollidingWithSolid(const Box2F &box, const std::unordered_set<Entity*> &exclusionSet);
 
 void sweepCollisionBoxAlongRayWithWorld(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult);
 void sweepCollisionBoxAlongRayWithCollidingEntities(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult);

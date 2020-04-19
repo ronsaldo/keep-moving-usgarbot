@@ -163,7 +163,8 @@ bool EntityCharacterBehavior::isOnFloor(Entity *self)
 {
     auto floorSensor = Box2F::withCenterAndHalfExtent(self->position, Vector2F(self->halfExtent.x, 0.1f))
         .translatedBy(Vector2F(0.0f, -self->halfExtent.y - 0.1f));
-    return isBoxCollidingWithSolid(floorSensor);
+
+    return isBoxCollidingWithSolid(floorSensor, {self});
 }
 
 bool EntityCharacterBehavior::canJump(Entity *self)

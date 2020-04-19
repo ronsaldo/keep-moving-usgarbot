@@ -11,7 +11,7 @@
 #include <string>
 #include <algorithm>
 
-#define GAME_TITLE "Simple Game Template"
+#define GAME_TITLE "Keep Moving and Shooting Useless Garbage Robot!!!"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
