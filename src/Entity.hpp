@@ -11,7 +11,7 @@ enum EntityBehaviorType : uint8_t {
 #   undef ENTITY_BEHAVIOR_TYPE
 };
 
-#define HumalFallTerminalVelocity 53.0f
+#define HumanFallTerminalVelocity 53.0f
 
 class Renderer;
 struct MapEntityLayerState;
@@ -193,7 +193,7 @@ public:
 
     virtual Vector2F fallTerminalVelocity()
     {
-        return Vector2F(0.0f, HumalFallTerminalVelocity);
+        return Vector2F(0.0f, HumanFallTerminalVelocity);
     }
 
     virtual Vector2F myTerminalVelocity()
@@ -245,9 +245,34 @@ public:
     virtual void update(Entity *self, float delta) override;
     virtual void hurtAt(Entity *self, float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse) override;
 
+    virtual float maximumJumpHeight()
+    {
+        return 7.0f;
+    }
+
+    virtual float maximumJumpHeightTime()
+    {
+        return 0.6f;
+    }
+
     virtual Vector2F jumpVelocity()
     {
-        return Vector2F(0.0f, 10.0f);
+        // Computing the formula for this on paper.
+        // 1) tmax = v/g 2)/ hmax =v^2/(2g)
+        // Solved, gives the following:
+        // Note: The actual jump height is smaller because of the linear damping.
+        return Vector2F(0.0f, 2.0f*maximumJumpHeight()/maximumJumpHeightTime());
+    }
+
+    virtual Vector2F myGravity() override
+    {
+        auto t = maximumJumpHeightTime();
+        return Vector2F(0.0f, -2.0f*maximumJumpHeight()/(t*t));
+    }
+
+    virtual Vector2F dashSpeed()
+    {
+        return Vector2F(50.0f, 0.0f);
     }
 
     virtual float currentAmmunitionSpeed(Entity *self)
@@ -282,6 +307,10 @@ public:
     bool isOnFloor(Entity *self);
     bool canJump(Entity *self);
     void jump(Entity *self);
+
+    bool canDash(Entity *self);
+    void dash(Entity *self);
+
     void shoot(Entity *self, float bulletSpeed, float bulletLifeTime, int currentAmmunitionPower, float bulletMass);
     void shoot(Entity *self);
 

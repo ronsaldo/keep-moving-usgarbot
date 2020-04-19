@@ -173,8 +173,23 @@ bool EntityCharacterBehavior::canJump(Entity *self)
 
 void EntityCharacterBehavior::jump(Entity *self)
 {
-    if(canJump(self))
-        self->velocity += jumpVelocity();
+    if(!canJump(self))
+        return;
+
+    self->velocity += jumpVelocity();
+}
+
+bool EntityCharacterBehavior::canDash(Entity *self)
+{
+    return isOnFloor(self);
+}
+
+void EntityCharacterBehavior::dash(Entity *self)
+{
+    if(!canDash(self))
+        return;
+
+    self->velocity += dashSpeed() * Vector2F(self->lookDirection.x, 0.0f);
 }
 
 void EntityCharacterBehavior::shoot(Entity *self, float bulletSpeed, float bulletLifeTime, int currentAmmunitionPower, float bulletMass)
@@ -230,6 +245,8 @@ void EntityPlayerBehavior::update(Entity *self, float delta)
         jump(self);
     if(global.isButtonPressed(ControllerButton::X))
         shoot(self);
+    if(global.isButtonPressed(ControllerButton::RightShoulder))
+        dash(self);
 
     Super::update(self, delta);
 
