@@ -15,6 +15,7 @@ public:
         : framebuffer(f)
     {
         halfFramebufferOffset = f.extent().asVector2F()/2;
+        framebufferUnitExtent = f.extent().asVector2F()*UnitsPerPixel;
         halfFramebufferUnitOffset = halfFramebufferOffset*Vector2F(UnitsPerPixel, -UnitsPerPixel);
 
         {
@@ -30,6 +31,7 @@ public:
     Vector2F cameraTranslation;
     Vector2I cameraPixelOffset;
     Vector2F halfFramebufferOffset;
+    Vector2F framebufferUnitExtent;
     Vector2F halfFramebufferUnitOffset;
 
     void renderBackground()
@@ -56,11 +58,22 @@ public:
 
     void renderCurrentMap()
     {
-        cameraTranslation = -Vector2F(global.cameraPosition.x, global.cameraPosition.y) + halfFramebufferUnitOffset;
-        cameraPixelOffset = pointFromWorldIntoPixelSpace(cameraTranslation).floor().asVector2I();
-        worldViewVolumeInUnits = viewVolumeInUnits.translatedBy(-cameraTranslation);
         if(!global.mapTransientState)
             return;
+
+        {
+            auto mapExtent = global.currentMap->extent().asVector2F()*UnitsPerPixel;
+            auto mapClippingExtent = Vector2F(std::max(mapExtent.x - framebufferUnitExtent.x, framebufferUnitExtent.x), mapExtent.y);
+
+            auto cameraPosition = Vector2F(global.cameraPosition.x, global.cameraPosition.y) - halfFramebufferUnitOffset;
+            cameraPosition = std::max(cameraPosition, Vector2F(0.0, framebufferUnitExtent.y));
+            cameraPosition = std::min(cameraPosition, mapClippingExtent);
+
+            cameraTranslation = -cameraPosition;
+        }
+
+        cameraPixelOffset = pointFromWorldIntoPixelSpace(cameraTranslation).floor().asVector2I();
+        worldViewVolumeInUnits = viewVolumeInUnits.translatedBy(-cameraTranslation);
 
         for(auto layer : global.mapTransientState->layers)
         {
@@ -213,5 +226,8 @@ void render(const Framebuffer &framebuffer)
 
 void EntityBehavior::renderWith(Entity *self, Renderer &renderer)
 {
-    renderer.fillWorldRectangle(self->boundingBox(), self->color);
+    auto color = self->color;
+    if(self->isInvincible())
+        color = 0xffffffff;
+    renderer.fillWorldRectangle(self->boundingBox(), color);
 }

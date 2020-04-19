@@ -101,6 +101,7 @@ void sweepCollisionBoxAlongRayWithWorldWithMapTileLayer(const Vector2F &boxHalfE
 
                     outResult.hasCollision = true;
                     outResult.collisionDistance = intersectionWorldT;
+                    outResult.collidingEntity = nullptr;
                     outResult.collidingBox = tileLayer->boxFromTileIntoWorldSpace(tileBox, tileExtent);
                 }
 
@@ -129,6 +130,25 @@ void sweepCollisionBoxAlongRayWithWorld(const Vector2F &boxHalfExtent, const Ray
 
 void sweepCollisionBoxAlongRayWithCollidingEntities(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult)
 {
+    auto mapState = global.mapTransientState;
+    if(!mapState)
+        return;
+
+    for(auto entity : mapState->collisionEntities)
+    {
+        if(outResult.entityExclusionSet.includes(entity))
+            continue;
+
+        auto testBox = entity->boundingBox().grownWithHalfExtent(boxHalfExtent);
+        auto intersectionResult = testBox.intersectionWithRay(ray);
+        if(intersectionResult.first && (!outResult.hasCollision || intersectionResult.second < outResult.collisionDistance))
+        {
+            outResult.hasCollision = true;
+            outResult.collisionDistance = intersectionResult.second;
+            outResult.collidingBox = testBox;
+            outResult.collidingEntity = entity;
+        }
+    }
 }
 
 void sweepCollisionBoxAlongRay(const Vector2F &boxHalfExtent, const Ray2F &ray, CollisionSweepTestResult &outResult)

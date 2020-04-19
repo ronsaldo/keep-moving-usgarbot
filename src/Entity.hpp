@@ -41,17 +41,32 @@ public:
     Vector2F velocity;
     Vector2F acceleration;
     Vector2F damping;
+    float mass;
+    float inverseMass;
+    float coefficientOfRestitution;
 
     // Specifics attributes.
     Vector2F lookDirection;
     Vector2F walkDirection;
     Entity *owner; // To not hurt oneself with a bullet
     float remainingLifeTime;
+    float remainingInvincibilityTime;
     uint32_t hitPoints;
     int contactDamage;
 
     // Visual attributes
     uint32_t color;
+
+    void applyImpulse(const Vector2F &impulse)
+    {
+        velocity += impulse*inverseMass;
+    }
+
+    void setMass(float newMass)
+    {
+        mass = newMass;
+        inverseMass = 1.0f / newMass;
+    }
 
     Box2F boundingBox()
     {
@@ -90,9 +105,15 @@ public:
             lookDirection = lastDirection;
     }
 
+    bool isInvincible()
+    {
+        return remainingInvincibilityTime > 0.0f;
+    }
+
     void spawn();
     void update(float delta);
     void renderWith(Renderer &renderer);
+    void hurtAt(float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse);
     bool needsTicking();
 };
 
@@ -117,6 +138,20 @@ public:
         (void)self;
         return false;
     }
+
+    virtual bool hasCollisions(Entity *self)
+    {
+        (void)self;
+        return false;
+    }
+
+    virtual void hurtAt(Entity *self, float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse)
+    {
+        (void)self;
+        (void)damage;
+        (void)hitPoint;
+        (void)hitImpulse;
+    }
 };
 
 EntityBehavior *entityBehaviorTypeIntoClass(EntityBehaviorType type);
@@ -134,6 +169,11 @@ inline void Entity::update(float delta)
 inline void Entity::renderWith(Renderer &renderer)
 {
     entityBehaviorTypeIntoClass(type)->renderWith(this, renderer);
+}
+
+inline void Entity::hurtAt(float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse)
+{
+    entityBehaviorTypeIntoClass(type)->hurtAt(this, damage, hitPoint, hitImpulse);
 }
 
 class EntityNullBehavior : public EntityBehavior
@@ -173,6 +213,12 @@ public:
     }
 
     virtual void update(Entity *self, float delta) override;
+
+    virtual bool hasCollisions(Entity *self) override
+    {
+        (void)self;
+        return true;
+    }
 };
 
 class EntityBulletBehavior : public EntityBehavior
@@ -197,6 +243,7 @@ public:
 
     virtual void spawn(Entity *self) override;
     virtual void update(Entity *self, float delta) override;
+    virtual void hurtAt(Entity *self, float damage, const Vector2F &hitPoint, const Vector2F &hitImpulse) override;
 
     virtual Vector2F jumpVelocity()
     {
@@ -221,10 +268,21 @@ public:
         return 5.0f;
     }
 
+    virtual float defaultInvincibilityPeriodDuration()
+    {
+        return 0.033f; // Two frames
+    }
+
+    virtual float currentAmmunitionMass(Entity *self)
+    {
+        (void)self;
+        return 0.150f;
+    }
+
     bool isOnFloor(Entity *self);
     bool canJump(Entity *self);
     void jump(Entity *self);
-    void shoot(Entity *self, float bulletSpeed, float bulletLifeTime, int currentAmmunitionPower);
+    void shoot(Entity *self, float bulletSpeed, float bulletLifeTime, int currentAmmunitionPower, float bulletMass);
     void shoot(Entity *self);
 
     virtual bool needsTicking(Entity *self) override
@@ -246,6 +304,8 @@ public:
 class EntityEnemyBehavior : public EntityCharacterBehavior
 {
 public:
+    typedef EntityCharacterBehavior Super;
+
     virtual void spawn(Entity *self) override;
 };
 

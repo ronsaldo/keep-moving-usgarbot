@@ -161,6 +161,16 @@ public:
         return header().extent.y * header().tileExtent.y;
     }
 
+    Vector2I extent() const
+    {
+        return header().extent * header().tileExtent;
+    }
+
+    Vector2I tileExtent() const
+    {
+        return header().tileExtent;
+    }
+
     size_t mapFileSize;
     std::unique_ptr<uint8_t[]> mapFileContent;
 };

@@ -2,7 +2,7 @@
 #define COLLISIONS_HPP
 
 #include "Box2.hpp"
-
+#include "FixedVector.hpp"
 #define CollisionNotStuckEpsilon 0.0001f
 #define CollisionSweepStopEpsilon 0.0001f
 
@@ -17,6 +17,8 @@ struct CollisionSweepTestResult
     bool hasCollision;
     Box2F collidingBox;
     Entity *collidingEntity;
+
+    FixedVector<Entity*, 10> entityExclusionSet;
 };
 
 // Collision testing.

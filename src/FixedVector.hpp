@@ -122,6 +122,16 @@ public:
         return storage() + size_;
     }
 
+    bool includes(const value_type &element) const
+    {
+        for(const auto &each : *this)
+        {
+            if(each == element)
+                return true;
+        }
+
+        return false;
+    }
 
 };
 
