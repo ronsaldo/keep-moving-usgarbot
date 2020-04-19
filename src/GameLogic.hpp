@@ -17,8 +17,8 @@ enum class LevelID
     DonMeowth,
     MrPresident,
 
-    InitialLevel = Test,
-    FinalLevel = Test,
+    InitialLevel = DonMeowth,
+    FinalLevel = MrPresident,
 };
 
 struct GlobalState

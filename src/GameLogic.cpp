@@ -135,10 +135,10 @@ static void startNewMap()
     switch(global.currentLevelID)
     {
     case LevelID::DonMeowth:
-        loadMapFile("donMeowth.map", "Escort Don Meowth!!!");
+        loadMapFile("donMeowth.map", "Escort\nDon Meowth!!!");
         break;
     case LevelID::MrPresident:
-        loadMapFile("mrPresident.map", "Protect the President!!!");
+        loadMapFile("mrPresident.map", "Protect\nMr. President!!!");
         break;
     case LevelID::Test:
     default:

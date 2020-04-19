@@ -3,6 +3,7 @@
 #include "GameLogic.hpp"
 #include "MapTransientState.hpp"
 #include <algorithm>
+#include <vector>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -206,6 +207,38 @@ public:
         }
     }
 
+    void drawCenteredRainbowString(const std::string &string, float wavePhase, size_t rainbowPhase)
+    {
+        std::vector<std::string> lines;
+        size_t lineStartIndex = 0;
+        for(size_t i = 0; i < string.size(); ++i)
+        {
+            auto c = string[i];
+            if(c == '\n')
+            {
+                lines.push_back(string.substr(lineStartIndex, i - lineStartIndex));
+                lineStartIndex = i + 1;
+            }
+        }
+        if(lineStartIndex <= string.size())
+            lines.push_back(string.substr(lineStartIndex, string.size() - lineStartIndex));
+
+        auto tileExtent = global.hudTiles.tileExtent.asVector2F();
+        auto framebufferExtent = framebuffer.extent().asVector2F();
+        auto verticalGap = tileExtent.y*2.0f;
+
+        auto remainingHeight = framebufferExtent.y - tileExtent.y*lines.size() - std::max(verticalGap*(lines.size()-1), 0.0f);
+        auto positionY = remainingHeight*0.5f;
+
+        for(auto & line : lines)
+        {
+            auto remainingWidth = framebufferExtent.x - tileExtent.x*line.size();
+            auto positionX = remainingWidth*0.5f;
+            drawRainbowString(line, Vector2F(positionX, positionY).asVector2I(), wavePhase, rainbowPhase);
+            positionY += tileExtent.y + verticalGap;
+        }
+    }
+
     Vector2I positionForCenteredStringOfSize(uint32_t size)
     {
         auto textExtent = global.hudTiles.tileExtent.asVector2F()*Vector2F(size, 1);
@@ -224,8 +257,7 @@ public:
         {
             float wavePhase = -transientState->currentMessageRemainingTime*3.0f;
             size_t rainbowPhase = -transientState->currentMessageRemainingTime*3.0f;
-            drawRainbowString(transientState->currentMessage, positionForCenteredStringOfSize(transientState->currentMessage.size()),
-                wavePhase, rainbowPhase);
+            drawCenteredRainbowString(transientState->currentMessage, wavePhase, rainbowPhase);
         }
     }
 
@@ -251,8 +283,7 @@ public:
     {
         float wavePhase = global.currentTime*3.0;
         size_t rainbowPhase = global.currentTime*3.0f;
-        drawRainbowString(message, positionForCenteredStringOfSize(message.size()),
-            wavePhase, rainbowPhase);
+        drawCenteredRainbowString(message, wavePhase, rainbowPhase);
     }
 
     void postProcess()
