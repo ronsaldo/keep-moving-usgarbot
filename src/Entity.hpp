@@ -370,7 +370,7 @@ public:
     virtual float currentBulletReloadTime(Entity *self)
     {
         (void)self;
-        return 0.1f;
+        return 0.25f;
     }
 
     bool isOnFloor(Entity *self);
@@ -408,6 +408,12 @@ public:
     virtual bool isPlayer() override
     {
         return true;
+    }
+
+    virtual float currentBulletReloadTime(Entity *self) override
+    {
+        (void)self;
+        return 0.1f;
     }
 };
 
@@ -506,6 +512,68 @@ public:
     {
         (void)self;
         return 3;
+    }
+};
+
+class EntityEnemyPatrolRebelDogBehavior : public EntityEnemyPatrolBehavior
+{
+public:
+    typedef EntityEnemyPatrolBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+};
+
+class EntityEnemySentryRebelDogBehavior : public EntityEnemySentryBehavior
+{
+public:
+    typedef EntityEnemySentryBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+};
+
+class EntityEnemyPatrolHumanoidBehavior : public EntityEnemyPatrolBehavior
+{
+public:
+    typedef EntityEnemyPatrolBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+
+    virtual float currentAmmunitionMass(Entity *self) override
+    {
+        (void)self;
+        return 10.0f;
+    }
+};
+
+class EntityEnemySentryHumanoidBehavior : public EntityEnemySentryBehavior
+{
+public:
+    typedef EntityEnemySentryBehavior Super;
+
+    virtual void spawn(Entity *self) override;
+
+    virtual float currentBulletReloadTime(Entity *self) override
+    {
+        (void)self;
+        return 0.9f;
+    }
+
+    virtual int currentAmmunitionPower(Entity *self) override
+    {
+        (void)self;
+        return 13;
+    }
+
+    virtual float currentAmmunitionDuration(Entity *self) override
+    {
+        (void)self;
+        return 2.5f;
+    }
+
+    virtual float currentAmmunitionMass(Entity *self) override
+    {
+        (void)self;
+        return 400.0f;
     }
 
 };

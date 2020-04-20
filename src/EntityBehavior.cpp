@@ -548,6 +548,59 @@ void EntityEnemySentryDogBehavior::spawn(Entity *self)
 }
 
 //============================================================================
+// EntityEnemyPatrolRebelDogBehavior
+//============================================================================
+void EntityEnemyPatrolRebelDogBehavior::spawn(Entity *self)
+{
+    Super::spawn(self);
+
+    self->setExtent(Vector2F(2.0f, 1.0f));
+    self->spriteSheet = &global.catDogsSprites;
+    self->spriteIndex = Vector2I(0, 2);
+    self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel)*0.0f;
+}
+
+//============================================================================
+// EntityEnemySentryRebelDogBehavior
+//============================================================================
+void EntityEnemySentryRebelDogBehavior::spawn(Entity *self)
+{
+    Super::spawn(self);
+
+    self->setExtent(Vector2F(2.0f, 1.0f));
+    self->spriteSheet = &global.catDogsSprites;
+    self->spriteIndex = Vector2I(0, 2);
+    self->spriteOffset = Vector2F(0.0f, 0.1f + -4*UnitsPerPixel)*0.0f;
+}
+//============================================================================
+// EntityEnemySentryHumanoidBehavior
+//============================================================================
+void EntityEnemySentryHumanoidBehavior::spawn(Entity *self)
+{
+    Super::spawn(self);
+
+    self->setExtent(Vector2F(1.5f, 2.5f)); // 48, 80
+
+    self->spriteSheet = &global.humanLikeSprites;
+    self->spriteIndex = Vector2I(0, 1);
+    self->spriteOffset = Vector2F(0.0, -5*UnitsPerPixel);
+}
+
+//============================================================================
+// EntityEnemyPatrolHumanoidBehavior
+//============================================================================
+void EntityEnemyPatrolHumanoidBehavior::spawn(Entity *self)
+{
+    Super::spawn(self);
+
+    self->setExtent(Vector2F(1.5f, 2.5f)); // 48, 80
+
+    self->spriteSheet = &global.humanLikeSprites;
+    self->spriteIndex = Vector2I(0, 1);
+    self->spriteOffset = Vector2F(0.0, -5*UnitsPerPixel);
+}
+
+//============================================================================
 // EntityScoltedVIPBehavior
 //============================================================================
 void EntityScoltedVIPBehavior::spawn(Entity *self)
@@ -622,6 +675,12 @@ void EntityDonMeowthBehavior::spawn(Entity *self)
 void EntityMrPresidentBehavior::spawn(Entity *self)
 {
     Super::spawn(self);
+
+    self->setExtent(Vector2F(1.5f, 2.5f)); // 48, 80
+
+    self->spriteSheet = &global.humanLikeSprites;
+    self->spriteIndex = Vector2I(0, 0);
+    self->spriteOffset = Vector2F(0.0, -5*UnitsPerPixel);
 
     self->dropToFloor();
 }

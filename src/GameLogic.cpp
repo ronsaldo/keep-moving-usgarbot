@@ -173,13 +173,16 @@ static void initializeGlobalState()
     if(global.isInitialized)
         return;
 
-    // This is the place for loading the required game assets.
+    // This is the place for loading the required game assets
+    global.backgroundImage.reset(hostInterface->loadImage("background.png"));
     global.mainTileSet.loadFrom("tileset.png");
     global.hudTiles.loadFrom("hud.png");
     global.itemsSprites.loadFrom("items.png");
     global.robotSprites.loadFrom("robotSprites.png", 48, 64);
     global.catDogsSprites.loadFrom("catDogsSprites.png", 64, 32);
+    global.humanLikeSprites.loadFrom("humanLikeSprites.png", 48, 80);
 
+    TileSet humanLikeSprites;
     global.playerShotSample = hostInterface->loadSoundSample("laser1.wav");
     global.enemyShotSample = hostInterface->loadSoundSample("laser3.wav");
 

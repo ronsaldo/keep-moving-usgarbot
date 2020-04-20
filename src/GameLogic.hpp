@@ -33,11 +33,13 @@ struct GlobalState
     ControllerState controllerState;
 
     // Sprited/tiles.
+    ImagePtr backgroundImage;
     TileSet mainTileSet;
     TileSet hudTiles;
     TileSet itemsSprites;
     TileSet robotSprites;
     TileSet catDogsSprites;
+    TileSet humanLikeSprites;
 
     // The current map spec.
     MapFilePtr currentMap;

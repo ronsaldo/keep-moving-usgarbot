@@ -55,6 +55,12 @@ public:
 
     void renderBackground()
     {
+        if(global.backgroundImage.get())
+        {
+            blitImage(global.backgroundImage, global.backgroundImage->bounds(), 0);
+            return;
+        }
+        
         auto destRow = framebuffer.pixels;
         for(uint32_t y = 0; y < framebuffer.height; ++y)
         {
