@@ -346,6 +346,30 @@ static void onKeyEvent(const SDL_KeyboardEvent &event, bool isDown)
         else if(keyboardControllerState.leftYAxis > 0)
             keyboardControllerState.leftYAxis = 0;
         break;
+    case SDLK_KP_4:
+        if (isDown)
+            keyboardControllerState.rightXAxis = -1;
+        else if (keyboardControllerState.rightXAxis < 0)
+            keyboardControllerState.rightXAxis = 0;
+        break;
+    case SDLK_KP_6:
+        if (isDown)
+            keyboardControllerState.rightXAxis = 1;
+        else if (keyboardControllerState.rightXAxis > 0)
+            keyboardControllerState.rightXAxis = 0;
+        break;
+    case SDLK_KP_5:
+        if (isDown)
+            keyboardControllerState.rightYAxis = -1;
+        else if (keyboardControllerState.rightYAxis < 0)
+            keyboardControllerState.rightYAxis = 0;
+        break;
+    case SDLK_KP_8:
+        if (isDown)
+            keyboardControllerState.rightYAxis = 1;
+        else if (keyboardControllerState.rightYAxis > 0)
+            keyboardControllerState.rightYAxis = 0;
+        break;
     case SDLK_ESCAPE:
         keyboardControllerState.setButton(ControllerButton::Start, isDown);
         break;

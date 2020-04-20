@@ -94,6 +94,8 @@ else()
     set(ASSET_FLAGS "")
 endif()
 
+add_definitions(-D_USE_MATH_DEFINES)
+
 # Add the current directory.
 include_directories(
 .

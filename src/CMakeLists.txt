@@ -20,6 +20,6 @@ else()
     set(KeepMovingGarbageRobot_SOURCES ${KeepMovingGarbageRobotGameLogic_SOURCES} ${KeepMovingGarbageRobot_SOURCES} )
 endif()
 
-add_executable(KeepMovingGarbageRobot ${KeepMovingGarbageRobot_SOURCES})
+add_executable(KeepMovingGarbageRobot WIN32 ${KeepMovingGarbageRobot_SOURCES})
 set_target_properties(KeepMovingGarbageRobot PROPERTIES LINK_FLAGS "${ASSET_FLAGS}")
 target_link_libraries(KeepMovingGarbageRobot ${KeepMovingGarbageRobot_DEP_LIBS})
