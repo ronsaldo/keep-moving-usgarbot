@@ -1,4 +1,4 @@
-set(SimpleGameTemplateGameLogic_SOURCES
+set(KeepMovingGarbageRobotGameLogic_SOURCES
     GameInterface.hpp
     GameLogic.cpp
     GameLogic.hpp
@@ -8,18 +8,18 @@ set(SimpleGameTemplateGameLogic_SOURCES
     Collisions.cpp
 )
 
-set(SimpleGameTemplate_SOURCES
+set(KeepMovingGarbageRobot_SOURCES
     Main.cpp
 )
 
 if(LIVE_CODING_SUPPORT)
     add_definitions(-DUSE_LIVE_CODING)
-    add_library(SimpleGameTemplateGameLogic MODULE ${SimpleGameTemplateGameLogic_SOURCES})
-    target_link_libraries(SimpleGameTemplateGameLogic ${SimpleGameTemplate_DEP_LIBS})
+    add_library(KeepMovingGarbageRobotGameLogic MODULE ${KeepMovingGarbageRobotGameLogic_SOURCES})
+    target_link_libraries(KeepMovingGarbageRobotGameLogic ${KeepMovingGarbageRobot_DEP_LIBS})
 else()
-    set(SimpleGameTemplate_SOURCES ${SimpleGameTemplateGameLogic_SOURCES} ${SimpleGameTemplate_SOURCES} )
+    set(KeepMovingGarbageRobot_SOURCES ${KeepMovingGarbageRobotGameLogic_SOURCES} ${KeepMovingGarbageRobot_SOURCES} )
 endif()
 
-add_executable(SimpleGameTemplate ${SimpleGameTemplate_SOURCES})
-set_target_properties(SimpleGameTemplate PROPERTIES LINK_FLAGS "${ASSET_FLAGS}")
-target_link_libraries(SimpleGameTemplate ${SimpleGameTemplate_DEP_LIBS})
+add_executable(KeepMovingGarbageRobot ${KeepMovingGarbageRobot_SOURCES})
+set_target_properties(KeepMovingGarbageRobot PROPERTIES LINK_FLAGS "${ASSET_FLAGS}")
+target_link_libraries(KeepMovingGarbageRobot ${KeepMovingGarbageRobot_DEP_LIBS})

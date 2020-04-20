@@ -1,6 +1,6 @@
-# SimpleGameTemplate cmake build script.
+# KeepMovingGarbageRobot cmake build script.
 cmake_minimum_required(VERSION 2.8)
-project(SimpleGameTemplate)
+project(KeepMovingGarbageRobot)
 
 # Check the build type
 if (CMAKE_BUILD_TYPE STREQUAL "")
@@ -18,7 +18,7 @@ endif()
 
 # Output paths.
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist")
-set(SimpleGameTemplate_DATA_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist/data")
+set(KeepMovingGarbageRobot_DATA_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/dist/data")
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/;${CMAKE_MODULE_PATH}")
 
 # Turn warnings and use C++ 2011.
@@ -44,8 +44,8 @@ include(${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
 include(${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
 
 # Set output dir.
-set(EXECUTABLE_OUTPUT_PATH "${SimpleGameTemplate_BINARY_DIR}/dist")
-set(LIBRARY_OUTPUT_PATH "${SimpleGameTemplate_BINARY_DIR}/dist")
+set(EXECUTABLE_OUTPUT_PATH "${KeepMovingGarbageRobot_BINARY_DIR}/dist")
+set(LIBRARY_OUTPUT_PATH "${KeepMovingGarbageRobot_BINARY_DIR}/dist")
 
 option(LIVE_CODING_SUPPORT True "Build with live coding support")
 
@@ -53,12 +53,12 @@ option(LIVE_CODING_SUPPORT True "Build with live coding support")
 find_package(PkgConfig)
 if(ON_EMSCRIPTEN)
     # Use SDL2 port instead of SDL1
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_SDL_MIXER=2 -s TOTAL_MEMORY=50331648 -Wno-warn-absolute-paths")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_SDL_MIXER=2 -s TOTAL_MEMORY=50331648 -Wno-warn-absolute-paths")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_SDL_MIXER=2 -s TOTAL_MEMORY=100663296 -Wno-warn-absolute-paths")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_SDL_MIXER=2 -s TOTAL_MEMORY=100663296 -Wno-warn-absolute-paths")
 
     set(SDL2_LIBRARIES)
     set(CMAKE_EXECUTABLE_SUFFIX .html)
-    set(SimpleGameTemplate_DEP_LIBS ${SDL2_LIBRARIES} ${SimpleGameTemplate_DEP_LIBS})
+    set(KeepMovingGarbageRobot_DEP_LIBS ${SDL2_LIBRARIES} ${KeepMovingGarbageRobot_DEP_LIBS})
     set(ASSET_FLAGS "--preload-file ${CMAKE_SOURCE_DIR}/assets@assets")
 
 	set(LIVE_CODING_SUPPORT False)
@@ -81,12 +81,12 @@ else()
 		find_library(SDL2_MAIN_LIBRARY NAMES SDL2main PATHS ${SDL2_LIBRARY_PATH})
     else()
 		set(SDL2_MAIN_LIBRARY "")
-		set(SimpleGameTemplate_DEP_LIBS "dl")
+		set(KeepMovingGarbageRobot_DEP_LIBS "dl")
     endif()
 
-    set(SimpleGameTemplate_DEP_LIBS ${SimpleGameTemplate_DEP_LIBS} ${SDL2_MAIN_LIBRARY} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${SDL2_MIXER_LIBRARY})
+    set(KeepMovingGarbageRobot_DEP_LIBS ${KeepMovingGarbageRobot_DEP_LIBS} ${SDL2_MAIN_LIBRARY} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${SDL2_MIXER_LIBRARY})
     if(MINGW)
-        set(SimpleGameTemplate_DEP_LIBS mingw32 ${SimpleGameTemplate_DEP_LIBS})
+        set(KeepMovingGarbageRobot_DEP_LIBS mingw32 ${KeepMovingGarbageRobot_DEP_LIBS})
 	add_definitions(-D__NO_INLINE__)
     endif()
 
